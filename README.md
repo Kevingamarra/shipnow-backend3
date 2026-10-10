@@ -1,14 +1,15 @@
-# Backend 2 - Plataforma de Eventos
+# ShipNow - Backend III
 
-Backend desarrollado como proyecto para la materia **Backend 2 – Diseño y Arquitectura Backend** de Coderhouse.
+## Pre-entrega Módulo 1 — Estructura profesional de ShipNow
 
+API REST desarrollada con Node.js, Express y MongoDB, refactorizada mediante una arquitectura profesional por capas.
 ---
 
 # Descripción
 
 API REST desarrollada con **Node.js**, **Express** y **MongoDB Atlas**, organizada mediante una arquitectura por capas.
 
-El proyecto implementa autenticación con **Passport.js**, **JWT** y **cookies HttpOnly**, además de un sistema de autorización basado en roles (`user`, `organizer` y `admin`).
+El proyecto implementa autenticación con **Passport.js**, **JWT** y **cookies HttpOnly**, además de un sistema de autorización basado en roles (`USER` y `ADMIN`).
 
 La autorización se realiza mediante middlewares reutilizables que diferencian correctamente usuarios no autenticados (**401 Unauthorized**) de usuarios autenticados sin permisos (**403 Forbidden**).
 
@@ -20,7 +21,7 @@ La aplicación quedó preparada para incorporar nuevas estrategias de autenticac
 
 GitHub:
 
-https://github.com/Kevingamarra/backend2-eventos
+https://github.com/Kevingamarra/shipnow-backend3
 
 ---
 
@@ -47,13 +48,13 @@ https://github.com/Kevingamarra/backend2-eventos
 ## Clonar el repositorio
 
 ```bash
-git clone https://github.com/Kevingamarra/backend2-eventos.git
+git clone https://github.com/Kevingamarra/shipnow-backend3.git
 ```
 
 ## Ingresar al proyecto
 
 ```bash
-cd backend2-eventos
+cd shipnow-backend3
 ```
 
 ## Instalar dependencias
@@ -86,7 +87,7 @@ El proyecto utiliza las siguientes variables:
 
 - **PORT**: puerto donde se ejecuta el servidor.
 - **NODE_ENV**: entorno de ejecución.
-- **MONGO_URL**: cadena de conexión a MongoDB Atlas.
+- **MONGODB_URI**: cadena de conexión a MongoDB Atlas.
 - **JWT_SECRET**: clave utilizada para firmar los tokens JWT.
 - **JWT_EXPIRES_IN**: tiempo de expiración del token.
 - **MAIL_HOST**: servidor SMTP.
@@ -100,7 +101,7 @@ Ejemplo del archivo `.env.example`:
 ```env
 PORT=4000
 NODE_ENV=development
-MONGO_URL=
+MONGODB_URI=
 JWT_SECRET=
 JWT_EXPIRES_IN=1h
 
@@ -116,14 +117,17 @@ MAIL_FROM=
 # Estructura del proyecto
 
 ```text
-backend2-eventos/
+shipnow-backend3/
 │
 ├── src/
 │   ├── app.js
 │   ├── server.js
 │   ├── config/
 │   │   ├── db.js
+│   │   ├── env.config.js
 │   │   └── passport.config.js
+│   ├── constants/
+│   │   └── index.js
 │   ├── controllers/
 │   ├── dao/
 │   ├── middlewares/
@@ -146,8 +150,8 @@ El proyecto está organizado siguiendo una arquitectura por capas para separar r
 
 - **Routes:** definen los endpoints de la API.
 - **Controllers:** reciben las peticiones HTTP y generan las respuestas.
-- **Repositories:** actúan como intermediarios entre la lógica de negocio y la persistencia.
-- **DAO:** realizan el acceso a la base de datos mediante Mongoose.
+- **Repositories:** única capa encargada del acceso a la persistencia y comunicación con MongoDB/Mongoose.
+- **DAO:** encapsula operaciones de acceso a datos utilizadas por los repositories.
 - **Models:** definen los esquemas de MongoDB.
 - **Config:** contiene la configuración de la base de datos y Passport.
 - **Middlewares:** centralizan validaciones y autenticación.
@@ -163,7 +167,7 @@ Se implementaron tres estrategias:
 
 ### Register
 
-La estrategia **register** verifica que el correo electrónico no exista previamente, encripta la contraseña utilizando **bcrypt** y crea el usuario con el rol `user`.
+La estrategia **register** verifica que el correo electrónico no exista previamente, encripta la contraseña utilizando **bcrypt** y crea el usuario con el rol `USER`.
 
 ### Login
 
@@ -190,83 +194,18 @@ Esta arquitectura permite incorporar fácilmente nuevas estrategias de autentica
 Verifica que el servidor se encuentre funcionando correctamente.
 
 ---
-
-## Events
-
-### GET /api/events
-
-Obtiene el listado de eventos.
-
-Filtros disponibles:
-
-- status
-- category
-- location
-- dateFrom
-- dateTo
-
-Parámetros opcionales:
-
-- page
-- limit
-- sort
-
----
-
-### GET /api/events/:id
-
-Obtiene un evento por su identificador.
-
----
-
-### POST /api/events
-
-Crea un nuevo evento.
-
-Acceso:
-
-- organizer
-- admin
-
-El organizador se obtiene automáticamente desde el usuario autenticado.
-
----
-
-### PUT /api/events/:id
-
-Actualiza un evento existente.
-
-Acceso:
-
-- organizer propietario
-- admin
-
----
-
-### PATCH /api/events/:id/status
-
-Actualiza el estado de un evento.
-
-Estados permitidos:
-
-- draft
-- published
-- cancelled
-- finished
-
-Acceso:
-
-- organizer propietario
-- admin
-
----
-
 ## Products
+
+Endpoints disponibles:
 
 - GET /api/products
 - GET /api/products/:pid
 - POST /api/products
 - DELETE /api/products/:pid
+
+Implementados mediante:
+
+Controller → Service → Repository
 
 ---
 
@@ -298,46 +237,6 @@ Acceso:
 
 ---
 
-## Tickets
-
-### POST /api/events/:eid/tickets
-
-Crear una inscripción a un evento publicado.
-
-Acceso:
-
-- Usuario autenticado.
-
----
-
-### GET /api/tickets/my-tickets
-
-Obtiene los tickets del usuario autenticado.
-
----
-
-### GET /api/events/:eid/tickets
-
-Obtiene los tickets de un evento.
-
-Acceso:
-
-- organizer propietario.
-- admin.
-
----
-
-### PATCH /api/tickets/:tid/cancel
-
-Cancela un ticket sin eliminarlo físicamente.
-
-Acceso:
-
-- dueño del ticket.
-- admin.
-
----
-
 # Ejemplos de uso
 
 ## Registro de usuario
@@ -365,7 +264,7 @@ Respuesta:
     "first_name": "Kevin",
     "last_name": "Gamarra",
     "email": "kevin@mail.com",
-    "role": "user"
+    "role": "USER"
   }
 }
 ```
@@ -410,7 +309,7 @@ Además, el servidor genera un JWT y lo almacena en una cookie **HttpOnly** llam
     "first_name": "Kevin",
     "last_name": "Gamarra",
     "email": "kevin@mail.com",
-    "role": "user"
+    "role": "USER"
   }
 }
 ```
@@ -433,36 +332,34 @@ Respuesta:
 
 # Roles
 
-El sistema implementa tres roles de usuario:
+El sistema utiliza roles centralizados mediante constantes del dominio.
 
-- **user**: puede consultar eventos publicados.
-- **organizer**: puede crear eventos y modificar únicamente los eventos que creó.
-- **admin**: tiene acceso administrativo y puede gestionar cualquier recurso.
+Roles disponibles:
 
-El registro público siempre crea usuarios con el rol **user**. Los roles **organizer** y **admin** se asignan posteriormente por un administrador.
+- **ADMIN**: permisos administrativos.
+- **USER**: usuario estándar del sistema.
 
----
+Los valores de dominio se encuentran definidos en:
+
+`src/constants/index.js`
+
+utilizando objetos inmutables con Object.freeze().
 
 # Matriz de permisos
 
-| Acción | user | organizer | admin |
-|--------|:----:|:---------:|:-----:|
-| Consultar eventos | Sí | Sí | Sí |
-| Crear eventos | No | Sí | Sí |
-| Modificar eventos propios | No | Sí | Sí |
-| Modificar cualquier evento | No | No | Sí |
-| Ver todos los usuarios | No | No | Sí |
-
----
+| Acción | USER | ADMIN |
+|--------|:----:|:-----:|
+| Consultar productos | Sí | Sí |
+| Crear productos | No | Sí |
+| Eliminar productos | No | Sí |
+| Consultar usuarios | No | Sí |
 
 # Rutas protegidas
 
-- **GET /api/sessions/current** → Requiere autenticación.
-- **POST /api/events** → Solo **organizer** o **admin**.
-- **PUT /api/events/:id** → Solo el **organizer** propietario del evento o un **admin**.
-- **GET /api/users** → Solo **admin**.
-
----
+- **GET /api/sessions/current** → Requiere autenticación mediante JWT.
+- **GET /api/users** → Requiere permisos de administrador.
+- **POST /api/products** → Requiere permisos administrativos.
+- **DELETE /api/products/:pid** → Requiere permisos administrativos.
 
 # Autenticación y autorización
 
@@ -480,41 +377,26 @@ Se devuelve cuando el usuario está autenticado correctamente, pero no posee per
 
 # Funcionalidades implementadas
 
-- Arquitectura organizada por capas.
-- Persistencia con MongoDB Atlas y Mongoose.
-- CRUD de productos.
-- Gestión de carritos.
-- Gestión completa de eventos.
-- Filtros por estado, categoría, ubicación y rango de fechas.
-- Paginación y ordenamiento del listado de eventos.
-- Estados de eventos: draft, published, cancelled y finished.
-- Validaciones de negocio en la capa services.
-- Asociación de cada evento con su organizador mediante ObjectId.
-- Sistema de tickets e inscripciones.
-- Control de cupos disponibles por evento.
-- Prevención de inscripciones duplicadas.
-- Cancelación lógica de tickets.
-- Generación de códigos únicos de reserva.
-- Notificaciones por correo electrónico mediante Nodemailer.
-- Autenticación mediante Passport.js.
-- Estrategias Passport Local (`register` y `login`).
-- Estrategia Passport JWT (`current`).
-- Sistema de autorización basado en roles (`user`, `organizer` y `admin`).
-- Middlewares reutilizables de autenticación y autorización.
-- Protección de rutas mediante JWT almacenado en cookies HttpOnly.
-- Validación de propiedad de recursos para organizadores.
-- Ruta administrativa protegida para administradores.
-- Contraseñas encriptadas con bcrypt.
-- Variables de entorno mediante dotenv.
-- Proyecto preparado para incorporar nuevas estrategias de autenticación (Google, GitHub u otros providers).
-
----
+- Arquitectura profesional Controller → Service → Repository.
+- Separación de responsabilidades por capas.
+- Configuración centralizada mediante env.config.js.
+- Validación de variables de entorno obligatorias al iniciar la aplicación.
+- Uso de constantes del dominio mediante Object.freeze().
+- Refactorización de Products con Repository.
+- Refactorización de Users con Repository.
+- Acceso a MongoDB encapsulado dentro de la capa Repository.
+- Controllers sin acceso directo a modelos Mongoose.
+- Services destinados a contener la lógica de negocio.
+- Paginación, filtros y ordenamiento de productos.
+- Protección de datos sensibles mediante selección de campos.
+- Autenticación mediante JWT y Passport.js.
+- Variables de entorno documentadas mediante .env.example.
 
 # Autor
 
 **Kevin Gamarra**
 
-Proyecto desarrollado como entrega para la materia **Backend 2 – Diseño y Arquitectura Backend** de Coderhouse.
+Proyecto desarrollado como entrega para la materia **Programación Backend III – Testing y Escalabilidad** de Coderhouse.
 
 
 ---
