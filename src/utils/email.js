@@ -1,12 +1,13 @@
 import nodemailer from "nodemailer";
+import env from "../config/env.config.js";
 
 const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST,
-  port: Number(process.env.MAIL_PORT),
+  host: env.MAIL_HOST,
+  port: Number(env.MAIL_PORT),
   secure: false,
   auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS
+    user: env.MAIL_USER,
+    pass: env.MAIL_PASS
   }
 });
 
@@ -16,7 +17,7 @@ export const sendTicketEmail = async (
   reservationCode
 ) => {
   await transporter.sendMail({
-    from: process.env.MAIL_FROM,
+    from: env.MAIL_FROM,
     to,
     subject: "Inscripción confirmada",
     html: `

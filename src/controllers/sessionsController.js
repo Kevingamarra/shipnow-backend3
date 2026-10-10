@@ -1,5 +1,6 @@
 import { generateToken } from "../utils/jwt.js";
 import currentUserDTO from "../dto/currentUser.dto.js";
+import env from "../config/env.config.js";
 
 export const register = (req, res) => {
   res.status(201).json({
@@ -15,7 +16,7 @@ export const login = (req, res) => {
     httpOnly: true,
     sameSite: "lax",
     maxAge: 3600000,
-    secure: process.env.NODE_ENV === "production"
+    secure: env.NODE_ENV === "production"
   });
 
   res.json({

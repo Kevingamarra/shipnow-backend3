@@ -4,6 +4,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 
 import usersRepository from "../repositories/users.repository.js";
 import sessionsService from "../services/sessions.service.js";
+import env from "./env.config.js";
 
 const cookieExtractor = (req) => {
   let token = null;
@@ -74,7 +75,7 @@ const initializePassport = () => {
         jwtFromRequest: ExtractJwt.fromExtractors([
           cookieExtractor
         ]),
-        secretOrKey: process.env.JWT_SECRET
+        secretOrKey: env.JWT_SECRET
       },
       async (payload, done) => {
         try {

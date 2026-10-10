@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import env from "../config/env.config.js";
 
 export const generateToken = (user) => {
   return jwt.sign(
@@ -7,13 +8,13 @@ export const generateToken = (user) => {
       email: user.email,
       role: user.role
     },
-    process.env.JWT_SECRET,
+    env.JWT_SECRET,
     {
-      expiresIn: process.env.JWT_EXPIRES_IN
+      expiresIn: env.JWT_EXPIRES_IN
     }
   );
 };
 
 export const verifyToken = (token) => {
-  return jwt.verify(token, process.env.JWT_SECRET);
+  return jwt.verify(token, env.JWT_SECRET);
 };
