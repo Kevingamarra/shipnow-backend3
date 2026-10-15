@@ -10,6 +10,7 @@ import {
 
 import auth from "../middlewares/auth.middleware.js";
 import authorize from "../middlewares/authorize.middleware.js";
+import { ROLES } from "../constants/index.js";
 
 import {
   createTicket,
@@ -25,21 +26,21 @@ router.get("/:id", getEventById);
 router.post(
   "/",
   auth,
-  authorize("organizer", "admin"),
+  authorize(ROLES.ORGANIZER, ROLES.ADMIN),
   createEvent
 );
 
 router.put(
   "/:id",
   auth,
-  authorize("organizer", "admin"),
+  authorize(ROLES.ORGANIZER, ROLES.ADMIN),
   updateEvent
 );
 
 router.patch(
   "/:id/status",
   auth,
-  authorize("organizer", "admin"),
+  authorize(ROLES.ORGANIZER, ROLES.ADMIN),
   updateEventStatus
 );
 
@@ -52,7 +53,7 @@ router.post(
 router.get(
   "/:eid/tickets",
   auth,
-  authorize("organizer", "admin"),
+  authorize(ROLES.ORGANIZER, ROLES.ADMIN),
   getEventTickets
 );
 

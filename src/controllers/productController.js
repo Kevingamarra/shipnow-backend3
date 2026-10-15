@@ -1,20 +1,19 @@
 import productsService from "../services/products.service.js";
 
-const getProducts = async (req, res) => {
+const getProducts = async (req, res, next) => {
   try {
     const products = await productsService.getAll(req.query);
+
     res.json({
       status: "success",
       ...products
     });
   } catch (error) {
-    res.status(500).json({
-      error: "Error al obtener productos"
-    });
+    next(error);
   }
 };
 
-const getProductById = async (req, res) => {
+const getProductById = async (req, res, next) => {
   try {
     const product = await productsService.getById(req.params.pid);
 
@@ -26,25 +25,21 @@ const getProductById = async (req, res) => {
 
     res.json(product);
   } catch (error) {
-    res.status(500).json({
-      error: "Error al obtener producto"
-    });
+    next(error);
   }
 };
 
-const createProduct = async (req, res) => {
+const createProduct = async (req, res, next) => {
   try {
     const newProduct = await productsService.create(req.body);
 
     res.json(newProduct);
   } catch (error) {
-    res.status(500).json({
-      error: "Error al crear producto"
-    });
+    next(error);
   }
 };
 
-const deleteProduct = async (req, res) => {
+const deleteProduct = async (req, res, next) => {
   try {
     await productsService.delete(req.params.pid);
 
@@ -52,9 +47,7 @@ const deleteProduct = async (req, res) => {
       message: "Producto eliminado"
     });
   } catch (error) {
-    res.status(500).json({
-      error: "Error al eliminar producto"
-    });
+    next(error);
   }
 };
 

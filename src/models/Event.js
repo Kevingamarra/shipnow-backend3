@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { EVENT_STATUS } from "../constants/index.js";
 
 const eventSchema = new mongoose.Schema(
   {
@@ -38,8 +39,8 @@ const eventSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["draft", "published", "cancelled", "finished"],
-      default: "draft"
+      enum: Object.values(EVENT_STATUS),
+      default: EVENT_STATUS.DRAFT
     },
     organizer: {
       type: mongoose.Schema.Types.ObjectId,

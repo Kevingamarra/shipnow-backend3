@@ -391,6 +391,80 @@ Se devuelve cuando el usuario está autenticado correctamente, pero no posee per
 - Protección de datos sensibles mediante selección de campos.
 - Autenticación mediante JWT y Passport.js.
 - Variables de entorno documentadas mediante .env.example.
+- Sistema de mocking para generación de datos de prueba.
+- Seed controlado de usuarios, repartidores, pedidos y entregas en MongoDB.
+- Relaciones entre usuarios, pedidos y entregas mediante referencias ObjectId.
+- Uso de constantes del dominio para roles, estados y prioridades.
+
+
+# Mocking y carga de datos de prueba
+
+El proyecto incorpora un módulo de mocking para generar datos simulados de prueba respetando la arquitectura por capas.
+
+La implementación se encuentra organizada mediante:
+
+- Routes
+- Controllers
+- Services
+- Repositories
+- Models
+
+Los datos generados utilizan las constantes del dominio definidas en `src/constants/index.js`.
+
+## Endpoints de Mocking
+
+### GET /api/mocks/users?qty=5
+
+Genera usuarios simulados sin persistirlos en MongoDB.
+
+Ejemplo de respuesta:
+
+```json
+{
+  "status": "success",
+  "payload": [
+    {
+      "first_name": "Ana",
+      "last_name": "Pérez",
+      "email": "user@test.com",
+      "role": "USER"
+    }
+  ]
+}
+```
+
+---
+
+### POST /api/mocks/seed?qty=10
+
+Genera e inserta datos de prueba en MongoDB.
+
+El proceso crea:
+
+- Usuarios
+- Repartidores
+- Pedidos
+- Entregas
+
+Manteniendo las relaciones:
+
+- Pedido ↔ Usuario
+- Entrega ↔ Pedido
+- Entrega ↔ Repartidor
+
+Ejemplo de respuesta:
+
+```json
+{
+  "status": "success",
+  "usuarios": 10,
+  "repartidores": 10,
+  "pedidos": 10,
+  "entregas": 10
+}
+```
+
+---
 
 # Autor
 
@@ -401,3 +475,27 @@ Proyecto desarrollado como entrega para la materia **Programación Backend III �
 
 ---
 
+
+## Justificación de la arquitectura por capas
+
+El proyecto separa las responsabilidades entre Controllers, Services y
+Repositories para mantener el código organizado, facilitar su mantenimiento
+y permitir probar cada parte de forma independiente.
+
+- **Controller:** recibe las solicitudes HTTP, obtiene los parámetros y datos
+  de entrada, invoca al servicio correspondiente y construye la respuesta.
+  Los errores se delegan al middleware centralizado cuando corresponde.
+- **Service:** contiene la lógica de negocio y las validaciones propias de cada
+  operación. Coordina las acciones necesarias sin ejecutar directamente las
+  consultas a MongoDB.
+- **Repository:** encapsula el acceso a los modelos de Mongoose y las
+  operaciones de persistencia, como búsquedas, altas, modificaciones y bajas.
+  De esta manera, el servicio no depende directamente de los detalles de
+  almacenamiento.
+
+Esta separación permite modificar las consultas a la base de datos sin
+trasladar esa responsabilidad a los controladores y mantener las reglas de
+negocio fuera de la capa de persistencia.
+
+La persistencia de los módulos migrados se centraliza en `src/repositories/`,
+evitando mantener una capa DAO duplicada.

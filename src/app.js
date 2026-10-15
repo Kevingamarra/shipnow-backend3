@@ -11,6 +11,8 @@ import eventsRoutes from "./routes/eventsRoutes.js";
 import sessionsRoutes from "./routes/sessionsRoutes.js";
 import usersRoutes from "./routes/usersRoutes.js";
 import ticketsRoutes from "./routes/ticketsRoutes.js";
+import mocksRoutes from "./routes/mocksRoutes.js";
+
 
 import errorHandler from "./middlewares/errorHandler.js";
 
@@ -39,6 +41,8 @@ app.use("/api/events", eventsRoutes);
 app.use("/api/sessions", sessionsRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/tickets", ticketsRoutes);
+app.use("/api/mocks", mocksRoutes);
+
 
 app.use(errorHandler);
 

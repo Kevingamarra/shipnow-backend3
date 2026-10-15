@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { TICKET_STATUS } from "../constants/index.js";
 
 const ticketSchema = new mongoose.Schema(
   {
@@ -14,8 +15,8 @@ const ticketSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["confirmed", "pending", "cancelled"],
-      default: "confirmed"
+      enum: Object.values(TICKET_STATUS),
+      default: TICKET_STATUS.CONFIRMED
     },
     quantity: {
       type: Number,

@@ -1,6 +1,6 @@
 import usersService from "../services/users.service.js";
 
-export const getUsers = async (req, res) => {
+export const getUsers = async (req, res, next) => {
   try {
     const users = await usersService.getAll();
 
@@ -9,9 +9,6 @@ export const getUsers = async (req, res) => {
       payload: users
     });
   } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };

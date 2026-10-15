@@ -1,3 +1,5 @@
+import { ROLES } from "../constants/index.js";
+
 import usersRepository from "../repositories/users.repository.js";
 import { createHash, isValidPassword } from "../utils/hash.js";
 
@@ -33,7 +35,7 @@ class SessionsService {
       last_name,
       email: normalizedEmail,
       password: createHash(password),
-      role: "user"
+      role: ROLES.USER
     });
 
     const newUser = user.toObject();

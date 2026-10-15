@@ -1,8 +1,10 @@
+import { ROLES } from "../constants/index.js";
+
 import ticketsService from "../services/tickets.service.js";
 import eventsService from "../services/events.service.js";
 import ticketDTO from "../dto/ticket.dto.js";
 
-export const createTicket = async (req, res) => {
+export const createTicket = async (req, res, next) => {
   try {
     const ticket = await ticketsService.create(
       req.user.id,
@@ -15,32 +17,11 @@ export const createTicket = async (req, res) => {
       payload: ticketDTO(ticket)
     });
   } catch (error) {
-    if (error.message === "Evento no encontrado") {
-      return res.status(404).json({
-        status: "error",
-        message: error.message
-      });
-    }
-
-    if (
-      error.message ===
-        "Ya tenés una inscripción activa para este evento" ||
-      error.message === "No hay cupos suficientes"
-    ) {
-      return res.status(409).json({
-        status: "error",
-        message: error.message
-      });
-    }
-
-    res.status(400).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };
 
-export const getMyTickets = async (req, res) => {
+export const getMyTickets = async (req, res, next) => {
   try {
     const tickets = await ticketsService.getMyTickets(
       req.user.id
@@ -51,14 +32,11 @@ export const getMyTickets = async (req, res) => {
       payload: tickets.map(ticketDTO)
     });
   } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };
 
-export const getEventTickets = async (req, res) => {
+export const getEventTickets = async (req, res, next) => {
   try {
     const event = await eventsService.getById(
       req.params.eid
@@ -72,7 +50,7 @@ export const getEventTickets = async (req, res) => {
     }
 
     if (
-      req.user.role === "organizer" &&
+      req.user.role === ROLES.ORGANIZER &&
       event.organizer._id.toString() !== req.user.id
     ) {
       return res.status(403).json({
@@ -82,24 +60,20 @@ export const getEventTickets = async (req, res) => {
       });
     }
 
-    const tickets =
-      await ticketsService.getEventTickets(
-        req.params.eid
-      );
+    const tickets = await ticketsService.getEventTickets(
+      req.params.eid
+    );
 
     res.json({
       status: "success",
       payload: tickets.map(ticketDTO)
     });
   } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };
 
-export const cancelTicket = async (req, res) => {
+export const cancelTicket = async (req, res, next) => {
   try {
     const ticket = await ticketsService.cancel(
       req.params.tid,
@@ -111,9 +85,6 @@ export const cancelTicket = async (req, res) => {
       payload: ticketDTO(ticket)
     });
   } catch (error) {
-    res.status(400).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };

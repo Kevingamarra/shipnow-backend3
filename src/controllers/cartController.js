@@ -1,19 +1,15 @@
 import cartsService from "../services/carts.service.js";
 
-const getCarts = async (req, res) => {
+const getCarts = async (req, res, next) => {
   try {
     const carts = await cartsService.getAll();
-
     res.json(carts);
   } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: "Error al obtener los carritos"
-    });
+    next(error);
   }
 };
 
-const getCartById = async (req, res) => {
+const getCartById = async (req, res, next) => {
   try {
     const cart = await cartsService.getById(req.params.cid);
 
@@ -26,27 +22,20 @@ const getCartById = async (req, res) => {
 
     res.json(cart);
   } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: "Error al obtener el carrito"
-    });
+    next(error);
   }
 };
 
-const createCart = async (req, res) => {
+const createCart = async (req, res, next) => {
   try {
     const newCart = await cartsService.create();
-
-    res.json(newCart);
+    res.status(201).json(newCart);
   } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: "Error al crear el carrito"
-    });
+    next(error);
   }
 };
 
-const addProductToCart = async (req, res) => {
+const addProductToCart = async (req, res, next) => {
   try {
     const cart = await cartsService.addProduct(
       req.params.cid,
@@ -55,14 +44,11 @@ const addProductToCart = async (req, res) => {
 
     res.json(cart);
   } catch (error) {
-    res.status(404).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };
 
-const deleteProductFromCart = async (req, res) => {
+const deleteProductFromCart = async (req, res, next) => {
   try {
     const cart = await cartsService.deleteProduct(
       req.params.cid,
@@ -71,14 +57,11 @@ const deleteProductFromCart = async (req, res) => {
 
     res.json(cart);
   } catch (error) {
-    res.status(404).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };
 
-const clearCart = async (req, res) => {
+const clearCart = async (req, res, next) => {
   try {
     await cartsService.clear(req.params.cid);
 
@@ -87,14 +70,11 @@ const clearCart = async (req, res) => {
       message: "Carrito vaciado"
     });
   } catch (error) {
-    res.status(404).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };
 
-const updateCart = async (req, res) => {
+const updateCart = async (req, res, next) => {
   try {
     const cart = await cartsService.update(
       req.params.cid,
@@ -103,14 +83,11 @@ const updateCart = async (req, res) => {
 
     res.json(cart);
   } catch (error) {
-    res.status(404).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };
 
-const updateProductQuantity = async (req, res) => {
+const updateProductQuantity = async (req, res, next) => {
   try {
     const cart = await cartsService.updateProductQuantity(
       req.params.cid,
@@ -120,10 +97,7 @@ const updateProductQuantity = async (req, res) => {
 
     res.json(cart);
   } catch (error) {
-    res.status(404).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };
 

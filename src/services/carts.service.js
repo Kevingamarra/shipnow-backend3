@@ -1,4 +1,5 @@
 import cartsRepository from "../repositories/carts.repository.js";
+import { createHttpError } from "../utils/httpError.js";
 
 class CartsService {
   async getAll() {
@@ -17,7 +18,7 @@ class CartsService {
     const cart = await cartsRepository.getByIdWithoutPopulate(cid);
 
     if (!cart) {
-      throw new Error("Carrito no encontrado");
+      throw createHttpError(404, "Carrito no encontrado");
     }
 
     const productIndex = cart.products.findIndex(
@@ -40,7 +41,7 @@ class CartsService {
     const cart = await cartsRepository.getByIdWithoutPopulate(cid);
 
     if (!cart) {
-      throw new Error("Carrito no encontrado");
+      throw createHttpError(404, "Carrito no encontrado");
     }
 
     cart.products = cart.products.filter(
@@ -51,22 +52,42 @@ class CartsService {
   }
 
   async clear(cid) {
-    return await cartsRepository.update(cid, {
+    const cart = await cartsRepository.update(cid, {
       products: []
     });
+
+    if (!cart) {
+      throw createHttpError(404, "Carrito no encontrado");
+    }
+
+    return cart;
   }
 
   async update(cid, products) {
-    return await cartsRepository.update(cid, {
+    if (!Array.isArray(products)) {
+      throw createHttpError(400, "Los productos deben enviarse en un arreglo");
+    }
+
+    const cart = await cartsRepository.update(cid, {
       products
     });
+
+    if (!cart) {
+      throw createHttpError(404, "Carrito no encontrado");
+    }
+
+    return cart;
   }
 
   async updateProductQuantity(cid, pid, quantity) {
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      throw createHttpError(400, "La cantidad debe ser un entero mayor a 0");
+    }
+
     const cart = await cartsRepository.getByIdWithoutPopulate(cid);
 
     if (!cart) {
-      throw new Error("Carrito no encontrado");
+      throw createHttpError(404, "Carrito no encontrado");
     }
 
     const product = cart.products.find(
@@ -74,7 +95,7 @@ class CartsService {
     );
 
     if (!product) {
-      throw new Error("Producto no encontrado en el carrito");
+      throw createHttpError(404, "Producto no encontrado en el carrito");
     }
 
     product.quantity = quantity;

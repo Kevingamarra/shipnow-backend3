@@ -1,28 +1,32 @@
-import cartsDAO from "../dao/carts.dao.js";
+import Cart from "../models/Cart.js";
 
 class CartsRepository {
   async getAll() {
-    return await cartsDAO.getAll();
+    return await Cart.find().populate("products.product");
   }
 
   async getById(id) {
-    return await cartsDAO.getById(id);
+    return await Cart.findById(id).populate("products.product");
   }
 
   async getByIdWithoutPopulate(id) {
-    return await cartsDAO.getByIdWithoutPopulate(id);
+    return await Cart.findById(id);
   }
 
   async create() {
-    return await cartsDAO.create();
+    return await Cart.create({ products: [] });
   }
 
   async update(id, data) {
-    return await cartsDAO.update(id, data);
+    return await Cart.findByIdAndUpdate(
+      id,
+      data,
+      { new: true, runValidators: true }
+    );
   }
 
   async save(cart) {
-    return await cartsDAO.save(cart);
+    return await cart.save();
   }
 }
 

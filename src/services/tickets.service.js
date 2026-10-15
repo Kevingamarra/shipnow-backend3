@@ -1,32 +1,39 @@
+import {
+  ROLES,
+  EVENT_STATUS,
+  TICKET_STATUS
+} from "../constants/index.js";
+
 import crypto from "crypto";
 
 import ticketsRepository from "../repositories/tickets.repository.js";
 import eventsRepository from "../repositories/events.repository.js";
 import usersRepository from "../repositories/users.repository.js";
 import { sendTicketEmail } from "../utils/email.js";
+import { createHttpError } from "../utils/httpError.js";
 
 class TicketsService {
   async create(userId, eventId, quantity) {
     const event = await eventsRepository.getById(eventId);
 
     if (!event) {
-      throw new Error("Evento no encontrado");
+      throw createHttpError(404, "Evento no encontrado");
     }
 
-    if (event.status === "cancelled") {
-      throw new Error("El evento está cancelado");
+    if (event.status === EVENT_STATUS.CANCELLED) {
+      throw createHttpError(400, "El evento está cancelado");
     }
 
-    if (event.status === "finished") {
-      throw new Error("El evento ya finalizó");
+    if (event.status === EVENT_STATUS.FINISHED) {
+      throw createHttpError(400, "El evento ya finalizó");
     }
 
-    if (event.status !== "published") {
-      throw new Error("El evento no está publicado");
+    if (event.status !== EVENT_STATUS.PUBLISHED) {
+      throw createHttpError(400, "El evento no está publicado");
     }
 
-    if (!quantity || quantity <= 0) {
-      throw new Error("La cantidad debe ser mayor a 0");
+    if (!Number.isInteger(quantity) || quantity <= 0) {
+      throw createHttpError(400, "La cantidad debe ser un entero mayor a 0");
     }
 
     const existingTicket =
@@ -36,7 +43,8 @@ class TicketsService {
       );
 
     if (existingTicket) {
-      throw new Error(
+      throw createHttpError(
+        409,
         "Ya tenés una inscripción activa para este evento"
       );
     }
@@ -50,7 +58,7 @@ class TicketsService {
     );
 
     if (occupiedSeats + quantity > event.capacity) {
-      throw new Error("No hay cupos suficientes");
+      throw createHttpError(409, "No hay cupos suficientes");
     }
 
     const reservationCode = crypto.randomUUID();
@@ -64,17 +72,16 @@ class TicketsService {
 
     const user = await usersRepository.getById(userId);
 
-    try {
-      await sendTicketEmail(
-        user.email,
-        event,
-        reservationCode
-      );
-    } catch (error) {
-      console.error(
-        "Error enviando email:",
-        error.message
-      );
+    if (user) {
+      try {
+        await sendTicketEmail(
+          user.email,
+          event,
+          reservationCode
+        );
+      } catch (error) {
+        console.error("Error enviando email:", error.message);
+      }
     }
 
     return ticket;
@@ -92,22 +99,25 @@ class TicketsService {
     const ticket = await ticketsRepository.getById(ticketId);
 
     if (!ticket) {
-      throw new Error("Ticket no encontrado");
+      throw createHttpError(404, "Ticket no encontrado");
     }
 
-    if (ticket.status === "cancelled") {
-      throw new Error("El ticket ya está cancelado");
+    if (ticket.status === TICKET_STATUS.CANCELLED) {
+      throw createHttpError(409, "El ticket ya está cancelado");
     }
 
     if (
-      user.role !== "admin" &&
+      user.role !== ROLES.ADMIN &&
       ticket.user._id.toString() !== user.id
     ) {
-      throw new Error("No tenés permisos para cancelar este ticket");
+      throw createHttpError(
+        403,
+        "No tenés permisos para cancelar este ticket"
+      );
     }
 
     return await ticketsRepository.update(ticketId, {
-      status: "cancelled",
+      status: TICKET_STATUS.CANCELLED,
       cancelledAt: new Date()
     });
   }

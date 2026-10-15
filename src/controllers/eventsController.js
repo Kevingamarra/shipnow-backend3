@@ -1,7 +1,9 @@
+import { ROLES } from "../constants/index.js";
+
 import eventsService from "../services/events.service.js";
 import eventDTO from "../dto/event.dto.js";
 
-export const getEvents = async (req, res) => {
+export const getEvents = async (req, res, next) => {
   try {
     const events = await eventsService.getAll(req.query);
 
@@ -11,14 +13,11 @@ export const getEvents = async (req, res) => {
       data: events.data.map(eventDTO)
     });
   } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };
 
-export const getEventById = async (req, res) => {
+export const getEventById = async (req, res, next) => {
   try {
     const event = await eventsService.getById(req.params.id);
 
@@ -34,14 +33,11 @@ export const getEventById = async (req, res) => {
       payload: eventDTO(event)
     });
   } catch (error) {
-    res.status(500).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };
 
-export const createEvent = async (req, res) => {
+export const createEvent = async (req, res, next) => {
   try {
     const event = await eventsService.create({
       ...req.body,
@@ -53,14 +49,11 @@ export const createEvent = async (req, res) => {
       payload: event
     });
   } catch (error) {
-    res.status(400).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };
 
-export const updateEvent = async (req, res) => {
+export const updateEvent = async (req, res, next) => {
   try {
     const event = await eventsService.getById(req.params.id);
 
@@ -72,7 +65,7 @@ export const updateEvent = async (req, res) => {
     }
 
     if (
-      req.user.role === "organizer" &&
+      req.user.role === ROLES.ORGANIZER &&
       event.organizer._id.toString() !== req.user.id
     ) {
       return res.status(403).json({
@@ -91,14 +84,11 @@ export const updateEvent = async (req, res) => {
       payload: eventDTO(updatedEvent)
     });
   } catch (error) {
-    res.status(400).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };
 
-export const updateEventStatus = async (req, res) => {
+export const updateEventStatus = async (req, res, next) => {
   try {
     const event = await eventsService.getById(req.params.id);
 
@@ -110,7 +100,7 @@ export const updateEventStatus = async (req, res) => {
     }
 
     if (
-      req.user.role === "organizer" &&
+      req.user.role === ROLES.ORGANIZER &&
       event.organizer._id.toString() !== req.user.id
     ) {
       return res.status(403).json({
@@ -129,9 +119,6 @@ export const updateEventStatus = async (req, res) => {
       payload: eventDTO(updatedEvent)
     });
   } catch (error) {
-    res.status(400).json({
-      status: "error",
-      message: error.message
-    });
+    next(error);
   }
 };
