@@ -399,9 +399,9 @@ Se devuelve cuando el usuario está autenticado correctamente, pero no posee per
 
 # Mocking y carga de datos de prueba
 
-El proyecto incorpora un módulo de mocking para generar datos simulados de prueba respetando la arquitectura por capas.
+El proyecto incorpora un módulo de mocking para generar datos de prueba de ShipNow API, respetando la arquitectura por capas.
 
-La implementación se encuentra organizada mediante:
+La implementación se organiza mediante:
 
 - Routes
 - Controllers
@@ -409,50 +409,42 @@ La implementación se encuentra organizada mediante:
 - Repositories
 - Models
 
-Los datos generados utilizan las constantes del dominio definidas en `src/constants/index.js`.
+Los generadores utilizan las constantes del dominio definidas en `src/constants/index.js`. Los endpoints GET devuelven datos simulados sin persistirlos en MongoDB.
 
-## Endpoints de Mocking
+## Endpoints de mocking
+
+Todos los endpoints aceptan el parámetro `qty`, que debe ser un entero entre 1 y 100. Si se omite, se utiliza 1.
 
 ### GET /api/mocks/users?qty=5
 
-Genera usuarios simulados sin persistirlos en MongoDB.
+Genera usuarios simulados con el rol `USER). No devuelve contraseñas ni guarda los usuarios en MongoDB.
 
-Ejemplo de respuesta:
+### GET /api/mocks/drivers?qty=5
 
-```json
-{
-  "status": "success",
-  "payload": [
-    {
-      "first_name": "Ana",
-      "last_name": "Pérez",
-      "email": "user@test.com",
-      "role": "USER"
-    }
-  ]
-}
-```
+Genera repartidores simulados con el rol `DRIVER`. No devuelve contraseñas ni guarda los registros en MongoDB.
 
----
+### GET /api/mocks/orders?qty=5
+
+Genera pedidos simulados con usuario referenciado, productos vacíos, estado `PENDING`, prioridad `MEDIUM` y total de prueba.
+
+Los identificadores de usuario son ficticios y no implican que esos usuarios existan en la base de datos.
+
+### GET /api/mocks/deliveries?qty=5
+
+Genera entregas simuladas con referencias ficticias a pedidos y repartidores. No guarda documentos en MongoDB.
 
 ### POST /api/mocks/seed?qty=10
 
-Genera e inserta datos de prueba en MongoDB.
+Inserta datos de prueba en MongoDB. Para cada cantidad solicitada, el proceso crea:
 
-El proceso crea:
+- Usuarios con rol `USER`.
+- Repartidores con rol `DRIVER`.
+- Pedidos relacionados con los usuarios insertados.
+- Entregas relacionadas con los pedidos y los repartidores insertados.
 
-- Usuarios
-- Repartidores
-- Pedidos
-- Entregas
+Las contraseñas se almacenan mediante el hash utilizado por el sistema de autenticación. Para las cuentas de prueba generadas, la contraseña original es `123456`.
 
-Manteniendo las relaciones:
-
-- Pedido ↔ Usuario
-- Entrega ↔ Pedido
-- Entrega ↔ Repartidor
-
-Ejemplo de respuesta:
+La respuesta informa la cantidad de registros creados:
 
 ```json
 {
@@ -463,6 +455,33 @@ Ejemplo de respuesta:
   "entregas": 10
 }
 ```
+
+**Importante:** cada ejecución de este endpoint inserta nuevos registros. Utilizarlo únicamente en una base de datos de desarrollo o pruebas.
+
+## Cómo probar los endpoints
+
+Consultar datos simulados sin guardarlos:
+
+```bash
+curl -i "http://localhost:4000/api/mocks/users?qty=2"
+curl -i "http://localhost:4000/api/mocks/drivers?qty=2"
+curl -i "http://localhost:4000/api/mocks/orders?qty=2"
+curl -i "http://localhost:4000/api/mocks/deliveries?qty=2"
+```
+
+Insertar registros de prueba:
+
+```bash
+curl -i -X POST "http://localhost:4000/api/mocks/seed?qty=2"
+```
+
+Validar el parámetro de cantidad:
+
+```bash
+curl -i "http://localhost:4000/api/mocks/users?qty=0"
+```
+
+La última petición debe responder con HTTP 400. Para ejecutar las pruebas, iniciar el servidor mediante `npm run dev) y configurar la conexión a MongoDB en las variables de entorno requeridas por el proyecto.
 
 ---
 

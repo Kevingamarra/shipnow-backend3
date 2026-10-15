@@ -1,5 +1,5 @@
+import mongoose from "mongoose";
 import mocksService from "../services/mocks.service.js";
-import mocksRepository from "../repositories/mocks.repository.js";
 
 const getQty = (req, res) => {
   const qty = Number(req.query.qty ?? 1);
@@ -15,19 +15,74 @@ const getQty = (req, res) => {
   return qty;
 };
 
+const removePasswords = (users) =>
+  users.map(({ password, ...user }) => user);
+
 export const getMockUsers = (req, res, next) => {
   try {
     const qty = getQty(req, res);
-
     if (qty === null) return;
 
-    const users = mocksService.generateUsers(qty).map(
-      ({ password, ...user }) => user
+    res.json({
+      status: "success",
+      payload: removePasswords(mocksService.generateUsers(qty))
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMockDrivers = (req, res, next) => {
+  try {
+    const qty = getQty(req, res);
+    if (qty === null) return;
+
+    res.json({
+      status: "success",
+      payload: removePasswords(mocksService.generateDrivers(qty))
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMockOrders = (req, res, next) => {
+  try {
+    const qty = getQty(req, res);
+    if (qty === null) return;
+
+    const payload = Array.from({ length: qty }, () =>
+      mocksService.generateOrders(
+        1,
+        new mongoose.Types.ObjectId()
+      )[0]
     );
 
     res.json({
       status: "success",
-      payload: users
+      payload
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getMockDeliveries = (req, res, next) => {
+  try {
+    const qty = getQty(req, res);
+    if (qty === null) return;
+
+    const payload = Array.from({ length: qty }, () =>
+      mocksService.generateDeliveries(
+        1,
+        new mongoose.Types.ObjectId(),
+        new mongoose.Types.ObjectId()
+      )[0]
+    );
+
+    res.json({
+      status: "success",
+      payload
     });
   } catch (error) {
     next(error);
@@ -37,38 +92,13 @@ export const getMockUsers = (req, res, next) => {
 export const seedUsers = async (req, res, next) => {
   try {
     const qty = getQty(req, res);
-
     if (qty === null) return;
 
-    const users = mocksService.generateUsers(qty);
-    const drivers = mocksService.generateDrivers(qty);
-
-    const insertedUsers = await mocksRepository.insertUsers(users);
-    const insertedDrivers = await mocksRepository.insertUsers(drivers);
-
-    const ordersData = insertedUsers.map((user) =>
-      mocksService.generateOrders(1, user._id)[0]
-    );
-
-    const insertedOrders = await mocksRepository.insertOrders(ordersData);
-
-    const deliveriesData = insertedOrders.map((order, index) =>
-      mocksService.generateDeliveries(
-        1,
-        order._id,
-        insertedDrivers[index % insertedDrivers.length]._id
-      )[0]
-    );
-
-    const insertedDeliveries =
-      await mocksRepository.insertDeliveries(deliveriesData);
+    const result = await mocksService.seed(qty);
 
     res.status(201).json({
       status: "success",
-      usuarios: insertedUsers.length,
-      repartidores: insertedDrivers.length,
-      pedidos: insertedOrders.length,
-      entregas: insertedDeliveries.length
+      ...result
     });
   } catch (error) {
     next(error);
