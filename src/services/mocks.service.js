@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 import {
   generateMockUser,
   generateMockDriver,
@@ -6,57 +8,107 @@ import {
 } from "../mocks/mocks.generator.js";
 
 import mocksRepository from "../repositories/mocks.repository.js";
+import { createHttpError } from "../utils/httpError.js";
 
 class MocksService {
+  validateQty(value = 1) {
+    const qty = Number(value);
+
+    if (!Number.isInteger(qty) || qty < 1 || qty > 100) {
+      throw createHttpError(
+        400,
+        "qty debe ser un número entero entre 1 y 100",
+        "INVALID_MOCK_QTY"
+      );
+    }
+
+    return qty;
+  }
+
   generateUsers(qty = 1) {
+    qty = this.validateQty(qty);
     return Array.from({ length: qty }, () => generateMockUser());
   }
 
   generateDrivers(qty = 1) {
+    qty = this.validateQty(qty);
     return Array.from({ length: qty }, () => generateMockDriver());
   }
 
   generateOrders(qty = 1, userId) {
+    qty = this.validateQty(qty);
     return Array.from({ length: qty }, () => generateMockOrder(userId));
   }
 
   generateDeliveries(qty = 1, orderId, driverId) {
+    qty = this.validateQty(qty);
+
     return Array.from(
       { length: qty },
       () => generateMockDelivery(orderId, driverId)
     );
   }
 
-  async seed(qty) {
-    const users = this.generateUsers(qty);
-    const drivers = this.generateDrivers(qty);
+  async seed(qty = 1) {
+    qty = this.validateQty(qty);
 
-    const insertedUsers = await mocksRepository.insertUsers(users);
-    const insertedDrivers = await mocksRepository.insertUsers(drivers);
+    const session = await mongoose.startSession();
 
-    const ordersData = insertedUsers.map((user) =>
-      this.generateOrders(1, user._id)[0]
-    );
+    try {
+      let result;
 
-    const insertedOrders = await mocksRepository.insertOrders(ordersData);
+      await session.withTransaction(async () => {
+        const users = this.generateUsers(qty);
+        const drivers = this.generateDrivers(qty);
 
-    const deliveriesData = insertedOrders.map((order, index) =>
-      this.generateDeliveries(
-        1,
-        order._id,
-        insertedDrivers[index % insertedDrivers.length]._id
-      )[0]
-    );
+        const insertedUsers =
+          await mocksRepository.insertUsers(users, session);
 
-    const insertedDeliveries =
-      await mocksRepository.insertDeliveries(deliveriesData);
+        const insertedDrivers =
+          await mocksRepository.insertUsers(drivers, session);
 
-    return {
-      usuarios: insertedUsers.length,
-      repartidores: insertedDrivers.length,
-      pedidos: insertedOrders.length,
-      entregas: insertedDeliveries.length
-    };
+        const ordersData = insertedUsers.map((user) =>
+          generateMockOrder(user._id)
+        );
+
+        const insertedOrders =
+          await mocksRepository.insertOrders(ordersData, session);
+
+        const deliveriesData = insertedOrders.map((order, index) =>
+          generateMockDelivery(
+            order._id,
+            insertedDrivers[index]._id
+          )
+        );
+
+        const insertedDeliveries =
+          await mocksRepository.insertDeliveries(
+            deliveriesData,
+            session
+          );
+
+        result = {
+          usuarios: insertedUsers.length,
+          repartidores: insertedDrivers.length,
+          pedidos: insertedOrders.length,
+          entregas: insertedDeliveries.length
+        };
+      });
+
+      return result;
+    } catch (error) {
+      if (error?.name === "CustomError") {
+        throw error;
+      }
+
+      throw createHttpError(
+        500,
+        "No se pudieron insertar los datos de prueba",
+        "MOCK_SEED_FAILED"
+      );
+    } finally {
+      await session.endSession();
+    }
   }
 }
 

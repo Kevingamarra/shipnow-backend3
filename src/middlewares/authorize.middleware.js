@@ -1,20 +1,21 @@
+import { createHttpError } from "../utils/httpError.js";
+
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({
-        status: "error",
-        message: "No autenticado"
-      });
+      return next(createHttpError(401, "No autenticado"));
     }
 
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        status: "error",
-        message: "No tenés permisos para realizar esta acción"
-      });
+      return next(
+        createHttpError(
+          403,
+          "No tenés permisos para realizar esta acción"
+        )
+      );
     }
 
-    next();
+    return next();
   };
 };
 

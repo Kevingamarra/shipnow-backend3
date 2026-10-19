@@ -1,11 +1,21 @@
 import productsRepository from "../repositories/products.repository.js";
+import { createHttpError } from "../utils/httpError.js";
 
 class ProductsService {
   async getAll(query) {
     let { limit = 10, page = 1, sort, query: category } = query;
 
-    limit = parseInt(limit);
-    page = parseInt(page);
+    limit = parseInt(limit, 10);
+    page = parseInt(page, 10);
+
+    if (!Number.isInteger(limit) || limit < 1 ||
+        !Number.isInteger(page) || page < 1) {
+      throw createHttpError(
+        400,
+        "Los datos enviados no son válidos",
+        "VALIDATION_ERROR"
+      );
+    }
 
     const filter = {};
 
@@ -42,7 +52,17 @@ class ProductsService {
   }
 
   async getById(id) {
-    return await productsRepository.getById(id);
+    const product = await productsRepository.getById(id);
+
+    if (!product) {
+      throw createHttpError(
+        404,
+        "Producto no encontrado",
+        "PRODUCT_NOT_FOUND"
+      );
+    }
+
+    return product;
   }
 
   async create(productData) {
@@ -50,7 +70,17 @@ class ProductsService {
   }
 
   async delete(id) {
-    return await productsRepository.delete(id);
+    const product = await productsRepository.delete(id);
+
+    if (!product) {
+      throw createHttpError(
+        404,
+        "Producto no encontrado",
+        "PRODUCT_NOT_FOUND"
+      );
+    }
+
+    return product;
   }
 }
 

@@ -1,26 +1,18 @@
 import { verifyToken } from "../utils/jwt.js";
+import { createHttpError } from "../utils/httpError.js";
 
 const auth = (req, res, next) => {
   try {
-    const token = req.cookies.currentUser;
+    const token = req.cookies?.currentUser;
 
     if (!token) {
-      return res.status(401).json({
-        status: "error",
-        message: "No autenticado"
-      });
+      return next(createHttpError(401, "No autenticado"));
     }
 
-    const user = verifyToken(token);
-
-    req.user = user;
-
-    next();
-  } catch (error) {
-    return res.status(401).json({
-      status: "error",
-      message: "No autenticado"
-    });
+    req.user = verifyToken(token);
+    return next();
+  } catch {
+    return next(createHttpError(401, "No autenticado"));
   }
 };
 

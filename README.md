@@ -518,3 +518,121 @@ negocio fuera de la capa de persistencia.
 
 La persistencia de los módulos migrados se centraliza en `src/repositories/`,
 evitando mantener una capa DAO duplicada.
+
+---
+
+# Pre-entrega Módulo 3 — Manejo profesional de errores
+
+## Manejo centralizado de errores
+
+ShipNow incorpora una capa común para gestionar errores mediante:
+
+- `src/errors/CustomError.js`: clase de error personalizado.
+- `src/errors/errorDictionary.js`: diccionario de códigos, mensajes y estados HTTP.
+- `src/utils/httpError.js`: utilidad para crear errores del dominio.
+- `src/middlewares/errorHandler.js`: middleware global que transforma los errores en respuestas HTTP uniformes.
+
+Los services detectan los errores del dominio y los propagan mediante errores personalizados. Los controllers delegan los errores al middleware global utilizando `next(error)`.
+
+El middleware también contempla errores de validación de Mongoose, identificadores con formato incorrecto y conflictos por claves duplicadas.
+
+## Estructura de las respuestas de error
+
+Todas las respuestas gestionadas por el middleware siguen esta estructura:
+
+```json
+{
+  "status": "error",
+  "code": "PRODUCT_NOT_FOUND",
+  "message": "Producto no encontrado"
+}
+```
+
+- `status`: indica que ocurrió un error.
+- `code`: identifica el tipo de error.
+- `message`: describe el problema.
+
+Los errores de validación suelen responder con HTTP 400, los recursos inexistentes con HTTP 404, los conflictos con HTTP 409 y los errores internos con HTTP 500.
+
+Los errores internos no exponen detalles técnicos de la base de datos al cliente.
+
+## Pruebas del manejo de errores
+
+Iniciar el servidor con las variables de entorno configuradas:
+
+```bash
+npm run dev
+```
+
+### 1. Cantidad negativa en mocks
+
+```bash
+curl -i "http://localhost:4000/api/mocks/users?qty=-1"
+```
+
+Resultado esperado: HTTP 400 y código `INVALID_MOCK_QTY`.
+
+### 2. Cantidad igual a cero
+
+```bash
+curl -i "http://localhost:4000/api/mocks/drivers?qty=0"
+```
+
+Resultado esperado: HTTP 400 y código `INVALID_MOCK_QTY`.
+
+### 3. Cantidad decimal
+
+```bash
+curl -i "http://localhost:4000/api/mocks/orders?qty=1.5"
+```
+
+Resultado esperado: HTTP 400 y código `INVALID_MOCK_QTY`.
+
+### 4. Cantidad superior al límite
+
+```bash
+curl -i "http://localhost:4000/api/mocks/deliveries?qty=101"
+```
+
+Resultado esperado: HTTP 400 y código `INVALID_MOCK_QTY`.
+
+El módulo de mocks admite cantidades enteras entre 1 y 100.
+
+### 5. Producto inexistente
+
+```bash
+curl -i "http://localhost:4000/api/products/000000000000000000000000"
+```
+
+Resultado esperado: HTTP 404 y código `PRODUCT_NOT_FOUND`, siempre que ese identificador no exista en la base de datos.
+
+### 6. Identificador con formato inválido
+
+```bash
+curl -i "http://localhost:4000/api/products/id-invalido"
+```
+
+Resultado esperado: HTTP 400 y código `BAD_REQUEST`.
+
+### 7. Generación válida de mocks
+
+```bash
+curl -i "http://localhost:4000/api/mocks/users?qty=2"
+```
+
+Resultado esperado: HTTP 200 y dos usuarios simulados, sin exponer sus contraseñas.
+
+### 8. Seed válido
+
+```bash
+curl -i -X POST \
+  "http://localhost:4000/api/mocks/seed?qty=2"
+```
+
+Resultado esperado: HTTP 201 y confirmación de dos usuarios, dos repartidores, dos pedidos y dos entregas.
+
+### 9. Manejo de fallas durante el seed
+
+El servicio ejecuta las inserciones dentro de una transacción de MongoDB. Si la operación falla, se espera que la transacción revierta sus cambios y que el cliente reciba HTTP 500 con código `MOCK_SEED_FAILED`.
+
+Para verificar este comportamiento, utilizar una base de pruebas compatible con transacciones, provocar un fallo controlado durante la inserción y consultar las colecciones antes y después. No utilizar una base de datos con información importante para esta prueba.

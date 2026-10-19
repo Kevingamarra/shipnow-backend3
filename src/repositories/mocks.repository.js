@@ -3,17 +3,16 @@ import Order from "../models/Order.js";
 import Delivery from "../models/Delivery.js";
 
 class MocksRepository {
-
-  async insertUsers(users) {
-    return await User.insertMany(users);
+  async insertUsers(users, session) {
+    return User.insertMany(users, { session });
   }
 
-  async insertOrders(orders) {
-    return await Order.insertMany(orders);
+  async insertOrders(orders, session) {
+    return Order.insertMany(orders, { session });
   }
 
-  async insertDeliveries(deliveries) {
-    return await Delivery.insertMany(deliveries);
+  async insertDeliveries(deliveries, session) {
+    return Delivery.insertMany(deliveries, { session });
   }
 }
 

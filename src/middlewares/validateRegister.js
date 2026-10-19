@@ -1,14 +1,26 @@
-const validateRegister = (req, res, next) => {
-  const { first_name, last_name, email, password } = req.body;
+import { createHttpError } from "../utils/httpError.js";
 
-  if (!first_name || !last_name || !email || !password) {
-    return res.status(400).json({
-      status: "error",
-      message: "Todos los campos son obligatorios"
-    });
+const validateRegister = (req, res, next) => {
+  const { first_name, last_name, email, password } = req.body ?? {};
+
+  if (
+    !first_name ||
+    !last_name ||
+    typeof email !== "string" ||
+    !email.trim() ||
+    typeof password !== "string" ||
+    !password
+  ) {
+    return next(
+      createHttpError(
+        400,
+        "Todos los campos son obligatorios",
+        "REQUIRED_FIELDS"
+      )
+    );
   }
 
-  next();
+  return next();
 };
 
 export default validateRegister;

@@ -1,27 +1,12 @@
 import mongoose from "mongoose";
 import mocksService from "../services/mocks.service.js";
 
-const getQty = (req, res) => {
-  const qty = Number(req.query.qty ?? 1);
-
-  if (!Number.isInteger(qty) || qty < 1 || qty > 100) {
-    res.status(400).json({
-      status: "error",
-      message: "qty debe ser un número entero entre 1 y 100"
-    });
-    return null;
-  }
-
-  return qty;
-};
-
 const removePasswords = (users) =>
   users.map(({ password, ...user }) => user);
 
 export const getMockUsers = (req, res, next) => {
   try {
-    const qty = getQty(req, res);
-    if (qty === null) return;
+    const qty = mocksService.validateQty(req.query.qty);
 
     res.json({
       status: "success",
@@ -34,8 +19,7 @@ export const getMockUsers = (req, res, next) => {
 
 export const getMockDrivers = (req, res, next) => {
   try {
-    const qty = getQty(req, res);
-    if (qty === null) return;
+    const qty = mocksService.validateQty(req.query.qty);
 
     res.json({
       status: "success",
@@ -48,8 +32,7 @@ export const getMockDrivers = (req, res, next) => {
 
 export const getMockOrders = (req, res, next) => {
   try {
-    const qty = getQty(req, res);
-    if (qty === null) return;
+    const qty = mocksService.validateQty(req.query.qty);
 
     const payload = Array.from({ length: qty }, () =>
       mocksService.generateOrders(
@@ -69,8 +52,7 @@ export const getMockOrders = (req, res, next) => {
 
 export const getMockDeliveries = (req, res, next) => {
   try {
-    const qty = getQty(req, res);
-    if (qty === null) return;
+    const qty = mocksService.validateQty(req.query.qty);
 
     const payload = Array.from({ length: qty }, () =>
       mocksService.generateDeliveries(
@@ -91,9 +73,7 @@ export const getMockDeliveries = (req, res, next) => {
 
 export const seedUsers = async (req, res, next) => {
   try {
-    const qty = getQty(req, res);
-    if (qty === null) return;
-
+    const qty = mocksService.validateQty(req.query.qty);
     const result = await mocksService.seed(qty);
 
     res.status(201).json({

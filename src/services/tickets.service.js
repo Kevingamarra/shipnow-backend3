@@ -17,23 +17,23 @@ class TicketsService {
     const event = await eventsRepository.getById(eventId);
 
     if (!event) {
-      throw createHttpError(404, "Evento no encontrado");
+      throw createHttpError(404, "Evento no encontrado", "EVENT_NOT_FOUND");
     }
 
     if (event.status === EVENT_STATUS.CANCELLED) {
-      throw createHttpError(400, "El evento está cancelado");
+      throw createHttpError(400, "El evento está cancelado", "EVENT_CANCELLED");
     }
 
     if (event.status === EVENT_STATUS.FINISHED) {
-      throw createHttpError(400, "El evento ya finalizó");
+      throw createHttpError(400, "El evento ya finalizó", "EVENT_FINISHED");
     }
 
     if (event.status !== EVENT_STATUS.PUBLISHED) {
-      throw createHttpError(400, "El evento no está publicado");
+      throw createHttpError(400, "El evento no está publicado", "EVENT_NOT_PUBLISHED");
     }
 
     if (!Number.isInteger(quantity) || quantity <= 0) {
-      throw createHttpError(400, "La cantidad debe ser un entero mayor a 0");
+      throw createHttpError(400, "La cantidad debe ser un entero mayor a 0", "INVALID_TICKET_QUANTITY");
     }
 
     const existingTicket =
@@ -45,7 +45,8 @@ class TicketsService {
     if (existingTicket) {
       throw createHttpError(
         409,
-        "Ya tenés una inscripción activa para este evento"
+        "Ya tenés una inscripción activa para este evento",
+        "DUPLICATE_ACTIVE_TICKET"
       );
     }
 
@@ -58,7 +59,7 @@ class TicketsService {
     );
 
     if (occupiedSeats + quantity > event.capacity) {
-      throw createHttpError(409, "No hay cupos suficientes");
+      throw createHttpError(409, "No hay cupos suficientes", "INSUFFICIENT_CAPACITY");
     }
 
     const reservationCode = crypto.randomUUID();
@@ -99,11 +100,11 @@ class TicketsService {
     const ticket = await ticketsRepository.getById(ticketId);
 
     if (!ticket) {
-      throw createHttpError(404, "Ticket no encontrado");
+      throw createHttpError(404, "Ticket no encontrado", "TICKET_NOT_FOUND");
     }
 
     if (ticket.status === TICKET_STATUS.CANCELLED) {
-      throw createHttpError(409, "El ticket ya está cancelado");
+      throw createHttpError(409, "El ticket ya está cancelado", "TICKET_ALREADY_CANCELLED");
     }
 
     if (
@@ -112,7 +113,8 @@ class TicketsService {
     ) {
       throw createHttpError(
         403,
-        "No tenés permisos para cancelar este ticket"
+        "No tenés permisos para cancelar este ticket",
+        "TICKET_FORBIDDEN"
       );
     }
 

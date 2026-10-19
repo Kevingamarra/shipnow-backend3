@@ -17,13 +17,10 @@ const getProductById = async (req, res, next) => {
   try {
     const product = await productsService.getById(req.params.pid);
 
-    if (!product) {
-      return res.status(404).json({
-        error: "Producto no encontrado"
-      });
-    }
-
-    res.json(product);
+    res.json({
+      status: "success",
+      payload: product
+    });
   } catch (error) {
     next(error);
   }
@@ -33,7 +30,10 @@ const createProduct = async (req, res, next) => {
   try {
     const newProduct = await productsService.create(req.body);
 
-    res.json(newProduct);
+    res.status(201).json({
+      status: "success",
+      payload: newProduct
+    });
   } catch (error) {
     next(error);
   }
@@ -41,10 +41,11 @@ const createProduct = async (req, res, next) => {
 
 const deleteProduct = async (req, res, next) => {
   try {
-    await productsService.delete(req.params.pid);
+    const product = await productsService.delete(req.params.pid);
 
     res.json({
-      message: "Producto eliminado"
+      status: "success",
+      payload: product
     });
   } catch (error) {
     next(error);

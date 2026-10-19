@@ -7,7 +7,17 @@ class CartsService {
   }
 
   async getById(id) {
-    return await cartsRepository.getById(id);
+    const cart = await cartsRepository.getById(id);
+
+    if (!cart) {
+      throw createHttpError(
+        404,
+        "Carrito no encontrado",
+        "CART_NOT_FOUND"
+      );
+    }
+
+    return cart;
   }
 
   async create() {
@@ -18,7 +28,11 @@ class CartsService {
     const cart = await cartsRepository.getByIdWithoutPopulate(cid);
 
     if (!cart) {
-      throw createHttpError(404, "Carrito no encontrado");
+      throw createHttpError(
+        404,
+        "Carrito no encontrado",
+        "CART_NOT_FOUND"
+      );
     }
 
     const productIndex = cart.products.findIndex(
@@ -41,7 +55,11 @@ class CartsService {
     const cart = await cartsRepository.getByIdWithoutPopulate(cid);
 
     if (!cart) {
-      throw createHttpError(404, "Carrito no encontrado");
+      throw createHttpError(
+        404,
+        "Carrito no encontrado",
+        "CART_NOT_FOUND"
+      );
     }
 
     cart.products = cart.products.filter(
@@ -57,7 +75,11 @@ class CartsService {
     });
 
     if (!cart) {
-      throw createHttpError(404, "Carrito no encontrado");
+      throw createHttpError(
+        404,
+        "Carrito no encontrado",
+        "CART_NOT_FOUND"
+      );
     }
 
     return cart;
@@ -65,7 +87,11 @@ class CartsService {
 
   async update(cid, products) {
     if (!Array.isArray(products)) {
-      throw createHttpError(400, "Los productos deben enviarse en un arreglo");
+      throw createHttpError(
+        400,
+        "Los productos deben enviarse en un arreglo",
+        "VALIDATION_ERROR"
+      );
     }
 
     const cart = await cartsRepository.update(cid, {
@@ -73,7 +99,11 @@ class CartsService {
     });
 
     if (!cart) {
-      throw createHttpError(404, "Carrito no encontrado");
+      throw createHttpError(
+        404,
+        "Carrito no encontrado",
+        "CART_NOT_FOUND"
+      );
     }
 
     return cart;
@@ -81,13 +111,21 @@ class CartsService {
 
   async updateProductQuantity(cid, pid, quantity) {
     if (!Number.isInteger(quantity) || quantity < 1) {
-      throw createHttpError(400, "La cantidad debe ser un entero mayor a 0");
+      throw createHttpError(
+        400,
+        "La cantidad debe ser un entero mayor a 0",
+        "VALIDATION_ERROR"
+      );
     }
 
     const cart = await cartsRepository.getByIdWithoutPopulate(cid);
 
     if (!cart) {
-      throw createHttpError(404, "Carrito no encontrado");
+      throw createHttpError(
+        404,
+        "Carrito no encontrado",
+        "CART_NOT_FOUND"
+      );
     }
 
     const product = cart.products.find(
@@ -95,7 +133,11 @@ class CartsService {
     );
 
     if (!product) {
-      throw createHttpError(404, "Producto no encontrado en el carrito");
+      throw createHttpError(
+        404,
+        "Producto no encontrado en el carrito",
+        "PRODUCT_NOT_FOUND"
+      );
     }
 
     product.quantity = quantity;

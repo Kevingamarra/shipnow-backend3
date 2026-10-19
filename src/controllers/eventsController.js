@@ -1,7 +1,7 @@
 import { ROLES } from "../constants/index.js";
-
 import eventsService from "../services/events.service.js";
 import eventDTO from "../dto/event.dto.js";
+import { createHttpError } from "../utils/httpError.js";
 
 export const getEvents = async (req, res, next) => {
   try {
@@ -22,10 +22,11 @@ export const getEventById = async (req, res, next) => {
     const event = await eventsService.getById(req.params.id);
 
     if (!event) {
-      return res.status(404).json({
-        status: "error",
-        message: "Evento no encontrado"
-      });
+      throw createHttpError(
+        404,
+        "Evento no encontrado",
+        "EVENT_NOT_FOUND"
+      );
     }
 
     res.json({
@@ -58,20 +59,22 @@ export const updateEvent = async (req, res, next) => {
     const event = await eventsService.getById(req.params.id);
 
     if (!event) {
-      return res.status(404).json({
-        status: "error",
-        message: "Evento no encontrado"
-      });
+      throw createHttpError(
+        404,
+        "Evento no encontrado",
+        "EVENT_NOT_FOUND"
+      );
     }
 
     if (
       req.user.role === ROLES.ORGANIZER &&
       event.organizer._id.toString() !== req.user.id
     ) {
-      return res.status(403).json({
-        status: "error",
-        message: "No tenés permisos para modificar este evento"
-      });
+      throw createHttpError(
+        403,
+        "No tenés permisos para modificar este evento",
+        "FORBIDDEN"
+      );
     }
 
     const updatedEvent = await eventsService.update(
@@ -93,20 +96,22 @@ export const updateEventStatus = async (req, res, next) => {
     const event = await eventsService.getById(req.params.id);
 
     if (!event) {
-      return res.status(404).json({
-        status: "error",
-        message: "Evento no encontrado"
-      });
+      throw createHttpError(
+        404,
+        "Evento no encontrado",
+        "EVENT_NOT_FOUND"
+      );
     }
 
     if (
       req.user.role === ROLES.ORGANIZER &&
       event.organizer._id.toString() !== req.user.id
     ) {
-      return res.status(403).json({
-        status: "error",
-        message: "No tenés permisos para modificar este evento"
-      });
+      throw createHttpError(
+        403,
+        "No tenés permisos para modificar este evento",
+        "FORBIDDEN"
+      );
     }
 
     const updatedEvent = await eventsService.updateStatus(

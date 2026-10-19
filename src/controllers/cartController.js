@@ -3,7 +3,11 @@ import cartsService from "../services/carts.service.js";
 const getCarts = async (req, res, next) => {
   try {
     const carts = await cartsService.getAll();
-    res.json(carts);
+
+    res.json({
+      status: "success",
+      payload: carts
+    });
   } catch (error) {
     next(error);
   }
@@ -13,14 +17,10 @@ const getCartById = async (req, res, next) => {
   try {
     const cart = await cartsService.getById(req.params.cid);
 
-    if (!cart) {
-      return res.status(404).json({
-        status: "error",
-        message: "Carrito no encontrado"
-      });
-    }
-
-    res.json(cart);
+    res.json({
+      status: "success",
+      payload: cart
+    });
   } catch (error) {
     next(error);
   }
@@ -29,7 +29,11 @@ const getCartById = async (req, res, next) => {
 const createCart = async (req, res, next) => {
   try {
     const newCart = await cartsService.create();
-    res.status(201).json(newCart);
+
+    res.status(201).json({
+      status: "success",
+      payload: newCart
+    });
   } catch (error) {
     next(error);
   }
@@ -42,7 +46,10 @@ const addProductToCart = async (req, res, next) => {
       req.params.pid
     );
 
-    res.json(cart);
+    res.json({
+      status: "success",
+      payload: cart
+    });
   } catch (error) {
     next(error);
   }
@@ -55,7 +62,10 @@ const deleteProductFromCart = async (req, res, next) => {
       req.params.pid
     );
 
-    res.json(cart);
+    res.json({
+      status: "success",
+      payload: cart
+    });
   } catch (error) {
     next(error);
   }
@@ -81,7 +91,10 @@ const updateCart = async (req, res, next) => {
       req.body.products
     );
 
-    res.json(cart);
+    res.json({
+      status: "success",
+      payload: cart
+    });
   } catch (error) {
     next(error);
   }
@@ -95,7 +108,10 @@ const updateProductQuantity = async (req, res, next) => {
       req.body.quantity
     );
 
-    res.json(cart);
+    res.json({
+      status: "success",
+      payload: cart
+    });
   } catch (error) {
     next(error);
   }

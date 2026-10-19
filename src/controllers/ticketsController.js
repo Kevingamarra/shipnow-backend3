@@ -1,8 +1,8 @@
 import { ROLES } from "../constants/index.js";
-
 import ticketsService from "../services/tickets.service.js";
 import eventsService from "../services/events.service.js";
 import ticketDTO from "../dto/ticket.dto.js";
+import { createHttpError } from "../utils/httpError.js";
 
 export const createTicket = async (req, res, next) => {
   try {
@@ -23,9 +23,7 @@ export const createTicket = async (req, res, next) => {
 
 export const getMyTickets = async (req, res, next) => {
   try {
-    const tickets = await ticketsService.getMyTickets(
-      req.user.id
-    );
+    const tickets = await ticketsService.getMyTickets(req.user.id);
 
     res.json({
       status: "success",
@@ -38,26 +36,25 @@ export const getMyTickets = async (req, res, next) => {
 
 export const getEventTickets = async (req, res, next) => {
   try {
-    const event = await eventsService.getById(
-      req.params.eid
-    );
+    const event = await eventsService.getById(req.params.eid);
 
     if (!event) {
-      return res.status(404).json({
-        status: "error",
-        message: "Evento no encontrado"
-      });
+      throw createHttpError(
+        404,
+        "Evento no encontrado",
+        "EVENT_NOT_FOUND"
+      );
     }
 
     if (
       req.user.role === ROLES.ORGANIZER &&
       event.organizer._id.toString() !== req.user.id
     ) {
-      return res.status(403).json({
-        status: "error",
-        message:
-          "No tenés permisos para ver los tickets de este evento"
-      });
+      throw createHttpError(
+        403,
+        "No tenés permisos para ver los tickets de este evento",
+        "FORBIDDEN"
+      );
     }
 
     const tickets = await ticketsService.getEventTickets(

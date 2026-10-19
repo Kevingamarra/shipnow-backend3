@@ -45,19 +45,19 @@ class EventsService {
 
   async create(eventData) {
     if (!eventData.date || Number.isNaN(new Date(eventData.date).getTime())) {
-      throw createHttpError(400, "La fecha del evento es inválida");
+      throw createHttpError(400, "La fecha del evento es inválida", "INVALID_EVENT_DATE");
     }
 
     if (new Date(eventData.date) < new Date()) {
-      throw createHttpError(400, "La fecha del evento no puede ser pasada");
+      throw createHttpError(400, "La fecha del evento no puede ser pasada", "EVENT_DATE_PASSED");
     }
 
     if (!Number.isFinite(Number(eventData.capacity)) || Number(eventData.capacity) <= 0) {
-      throw createHttpError(400, "La capacidad debe ser mayor a 0");
+      throw createHttpError(400, "La capacidad debe ser mayor a 0", "INVALID_EVENT_CAPACITY");
     }
 
     if (!Number.isFinite(Number(eventData.price)) || Number(eventData.price) < 0) {
-      throw createHttpError(400, "El precio no puede ser negativo");
+      throw createHttpError(400, "El precio no puede ser negativo", "INVALID_EVENT_PRICE");
     }
 
     return await eventsRepository.create(eventData);
@@ -67,11 +67,11 @@ class EventsService {
     const event = await eventsRepository.getById(id);
 
     if (!event) {
-      throw createHttpError(404, "Evento no encontrado");
+      throw createHttpError(404, "Evento no encontrado", "EVENT_NOT_FOUND");
     }
 
     if (event.status === EVENT_STATUS.CANCELLED) {
-      throw createHttpError(400, "No se puede modificar un evento cancelado");
+      throw createHttpError(400, "No se puede modificar un evento cancelado", "EVENT_CANCELLED");
     }
 
     if (
@@ -79,7 +79,7 @@ class EventsService {
       (!Number.isFinite(Number(eventData.capacity)) ||
         Number(eventData.capacity) <= 0)
     ) {
-      throw createHttpError(400, "La capacidad debe ser mayor a 0");
+      throw createHttpError(400, "La capacidad debe ser mayor a 0", "INVALID_EVENT_CAPACITY");
     }
 
     if (
@@ -87,7 +87,7 @@ class EventsService {
       (!Number.isFinite(Number(eventData.price)) ||
         Number(eventData.price) < 0)
     ) {
-      throw createHttpError(400, "El precio no puede ser negativo");
+      throw createHttpError(400, "El precio no puede ser negativo", "INVALID_EVENT_PRICE");
     }
 
     return await eventsRepository.update(id, eventData);
@@ -97,11 +97,11 @@ class EventsService {
     const event = await eventsRepository.getById(id);
 
     if (!event) {
-      throw createHttpError(404, "Evento no encontrado");
+      throw createHttpError(404, "Evento no encontrado", "EVENT_NOT_FOUND");
     }
 
     if (event.status === EVENT_STATUS.CANCELLED) {
-      throw createHttpError(400, "No se puede cambiar el estado de un evento cancelado");
+      throw createHttpError(400, "No se puede cambiar el estado de un evento cancelado", "EVENT_CANCELLED");
     }
 
     if (
@@ -109,7 +109,7 @@ class EventsService {
       (event.status === EVENT_STATUS.FINISHED ||
         event.status === EVENT_STATUS.CANCELLED)
     ) {
-      throw createHttpError(400, "No se puede publicar un evento finalizado o cancelado");
+      throw createHttpError(400, "No se puede publicar un evento finalizado o cancelado", "EVENT_CANCELLED");
     }
 
     return await eventsRepository.updateStatus(id, status);
