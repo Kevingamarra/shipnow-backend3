@@ -92,7 +92,28 @@ class TicketsService {
     return await ticketsRepository.getByUser(userId);
   }
 
-  async getEventTickets(eventId) {
+  async getEventTickets(eventId, user) {
+    const event = await eventsRepository.getById(eventId);
+
+    if (!event) {
+      throw createHttpError(
+        404,
+        "Evento no encontrado",
+        "EVENT_NOT_FOUND"
+      );
+    }
+
+    if (
+      user.role === ROLES.ORGANIZER &&
+      event.organizer._id.toString() !== user.id
+    ) {
+      throw createHttpError(
+        403,
+        "No tenés permisos para ver los tickets de este evento",
+        "FORBIDDEN"
+      );
+    }
+
     return await ticketsRepository.getByEvent(eventId);
   }
 

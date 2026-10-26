@@ -1,7 +1,5 @@
-import { ROLES } from "../constants/index.js";
 import eventsService from "../services/events.service.js";
 import eventDTO from "../dto/event.dto.js";
-import { createHttpError } from "../utils/httpError.js";
 
 export const getEvents = async (req, res, next) => {
   try {
@@ -20,14 +18,6 @@ export const getEvents = async (req, res, next) => {
 export const getEventById = async (req, res, next) => {
   try {
     const event = await eventsService.getById(req.params.id);
-
-    if (!event) {
-      throw createHttpError(
-        404,
-        "Evento no encontrado",
-        "EVENT_NOT_FOUND"
-      );
-    }
 
     res.json({
       status: "success",
@@ -56,30 +46,10 @@ export const createEvent = async (req, res, next) => {
 
 export const updateEvent = async (req, res, next) => {
   try {
-    const event = await eventsService.getById(req.params.id);
-
-    if (!event) {
-      throw createHttpError(
-        404,
-        "Evento no encontrado",
-        "EVENT_NOT_FOUND"
-      );
-    }
-
-    if (
-      req.user.role === ROLES.ORGANIZER &&
-      event.organizer._id.toString() !== req.user.id
-    ) {
-      throw createHttpError(
-        403,
-        "No tenés permisos para modificar este evento",
-        "FORBIDDEN"
-      );
-    }
-
     const updatedEvent = await eventsService.update(
       req.params.id,
-      req.body
+      req.body,
+      req.user
     );
 
     res.json({
@@ -93,30 +63,10 @@ export const updateEvent = async (req, res, next) => {
 
 export const updateEventStatus = async (req, res, next) => {
   try {
-    const event = await eventsService.getById(req.params.id);
-
-    if (!event) {
-      throw createHttpError(
-        404,
-        "Evento no encontrado",
-        "EVENT_NOT_FOUND"
-      );
-    }
-
-    if (
-      req.user.role === ROLES.ORGANIZER &&
-      event.organizer._id.toString() !== req.user.id
-    ) {
-      throw createHttpError(
-        403,
-        "No tenés permisos para modificar este evento",
-        "FORBIDDEN"
-      );
-    }
-
     const updatedEvent = await eventsService.updateStatus(
       req.params.id,
-      req.body.status
+      req.body.status,
+      req.user
     );
 
     res.json({

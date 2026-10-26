@@ -1,8 +1,5 @@
-import { ROLES } from "../constants/index.js";
 import ticketsService from "../services/tickets.service.js";
-import eventsService from "../services/events.service.js";
 import ticketDTO from "../dto/ticket.dto.js";
-import { createHttpError } from "../utils/httpError.js";
 
 export const createTicket = async (req, res, next) => {
   try {
@@ -36,29 +33,9 @@ export const getMyTickets = async (req, res, next) => {
 
 export const getEventTickets = async (req, res, next) => {
   try {
-    const event = await eventsService.getById(req.params.eid);
-
-    if (!event) {
-      throw createHttpError(
-        404,
-        "Evento no encontrado",
-        "EVENT_NOT_FOUND"
-      );
-    }
-
-    if (
-      req.user.role === ROLES.ORGANIZER &&
-      event.organizer._id.toString() !== req.user.id
-    ) {
-      throw createHttpError(
-        403,
-        "No tenés permisos para ver los tickets de este evento",
-        "FORBIDDEN"
-      );
-    }
-
     const tickets = await ticketsService.getEventTickets(
-      req.params.eid
+      req.params.eid,
+      req.user
     );
 
     res.json({
