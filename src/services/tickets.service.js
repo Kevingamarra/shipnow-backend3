@@ -10,6 +10,7 @@ import ticketsRepository from "../repositories/tickets.repository.js";
 import eventsRepository from "../repositories/events.repository.js";
 import usersRepository from "../repositories/users.repository.js";
 import { sendTicketEmail } from "../utils/email.js";
+import logger from "../utils/logger.js";
 import { createHttpError } from "../utils/httpError.js";
 
 class TicketsService {
@@ -81,7 +82,7 @@ class TicketsService {
           reservationCode
         );
       } catch (error) {
-        console.error("Error enviando email:", error.message);
+        logger.error("Error enviando email de ticket", { message: error.message });
       }
     }
 

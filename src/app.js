@@ -12,20 +12,19 @@ import sessionsRoutes from "./routes/sessionsRoutes.js";
 import usersRoutes from "./routes/usersRoutes.js";
 import ticketsRoutes from "./routes/ticketsRoutes.js";
 import mocksRoutes from "./routes/mocksRoutes.js";
+import loggerRoutes from "./routes/loggerRoutes.js";
 
-
+import { createHttpError } from "./utils/httpError.js";
+import logger from "./utils/logger.js";
 import errorHandler from "./middlewares/errorHandler.js";
 
 const app = express();
 
 app.use(cors());
-
 app.use(express.json());
-
 app.use(cookieParser());
 
 initializePassport();
-
 app.use(passport.initialize());
 
 app.get("/api/health", (req, res) => {
@@ -42,7 +41,16 @@ app.use("/api/sessions", sessionsRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/tickets", ticketsRoutes);
 app.use("/api/mocks", mocksRoutes);
+app.use("/api/logger", loggerRoutes);
 
+app.use((req, res, next) => {
+  logger.warning("Ruta inexistente", {
+    method: req.method,
+    path: req.originalUrl
+  });
+
+  next(createHttpError(404, "Ruta no encontrada", "RESOURCE_NOT_FOUND"));
+});
 
 app.use(errorHandler);
 

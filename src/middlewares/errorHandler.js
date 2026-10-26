@@ -1,5 +1,6 @@
 import CustomError from "../errors/CustomError.js";
 import ERROR_DICTIONARY from "../errors/errorDictionary.js";
+import logger from "../utils/logger.js";
 
 const errorHandler = (err, req, res, next) => {
   if (res.headersSent) {
@@ -26,14 +27,24 @@ const errorHandler = (err, req, res, next) => {
   const definition =
     ERROR_DICTIONARY[code] ?? ERROR_DICTIONARY.INTERNAL_ERROR;
 
-  // Los errores inesperados no deben filtrar detalles internos.
   const message =
-    err instanceof CustomError
-      ? err.message
-      : definition.message;
+    err instanceof CustomError ? err.message : definition.message;
+
+  const context = {
+    code,
+    status,
+    method: req.method,
+    path: req.originalUrl
+  };
 
   if (status >= 500) {
-    console.error(err);
+    logger.error("Error inesperado al procesar una solicitud", {
+      ...context,
+      error: err.message,
+      stack: err.stack
+    });
+  } else {
+    logger.warning("Solicitud rechazada", context);
   }
 
   return res.status(status).json({

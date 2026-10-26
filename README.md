@@ -636,3 +636,55 @@ Resultado esperado: HTTP 201 y confirmación de dos usuarios, dos repartidores, 
 El servicio ejecuta las inserciones dentro de una transacción de MongoDB. Si la operación falla, se espera que la transacción revierta sus cambios y que el cliente reciba HTTP 500 con código `MOCK_SEED_FAILED`.
 
 Para verificar este comportamiento, utilizar una base de pruebas compatible con transacciones, provocar un fallo controlado durante la inserción y consultar las colecciones antes y después. No utilizar una base de datos con información importante para esta prueba.
+
+## Logging y monitoreo
+
+ShipNow utiliza Winston para centralizar los registros de la aplicación y
+`winston-daily-rotate-file` para la rotación de archivos.
+
+### Niveles disponibles
+
+- `debug`: información detallada para desarrollo.
+- `http`: eventos relacionados con solicitudes HTTP.
+- `info`: eventos informativos, como el inicio del servidor.
+- `warning`: advertencias y solicitudes rechazadas.
+- `error`: errores de la aplicación.
+- `fatal`: fallas críticas, como problemas de conexión al iniciar.
+
+### Configuración por entorno
+
+El comportamiento se configura mediante `NODE_ENV`.
+
+- `development`: la consola muestra todos los niveles, incluido `debug`.
+- `production`: la consola registra desde `info`.
+- El archivo general conserva registros desde `debug`.
+
+### Archivos de logs
+
+Los archivos se generan dentro de `logs/`, en la raíz del proyecto.
+
+- `combined-YYYY-MM-DD.log`: registro general de la aplicación.
+- `error.log`: errores y fallas críticas.
+
+El archivo general utiliza rotación diaria, con un tamaño máximo de 20 MB
+por archivo y una retención de 14 días.
+
+El archivo `error.log` rota por tamaño, con un límite de 20 MB y hasta
+14 archivos históricos.
+
+La carpeta `logs/` está excluida de Git mediante `.gitignore`.
+
+### Probar el logger
+
+Iniciar el servidor:
+
+    npm run dev
+
+Consultar el endpoint de prueba:
+
+    curl -i http://localhost:4000/api/logger/test
+
+La respuesta debe ser HTTP 200 y confirmar la ejecución de los seis niveles.
+Se pueden revisar los registros en los archivos de la carpeta `logs/`.
+
+Este endpoint es una herramienta de diagnóstico y no una operación de negocio.

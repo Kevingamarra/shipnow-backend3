@@ -9,12 +9,14 @@ import {
 
 import mocksRepository from "../repositories/mocks.repository.js";
 import { createHttpError } from "../utils/httpError.js";
+import logger from "../utils/logger.js";
 
 class MocksService {
   validateQty(value = 1) {
     const qty = Number(value);
 
     if (!Number.isInteger(qty) || qty < 1 || qty > 100) {
+      logger.warning("Cantidad inválida solicitada para mocks", { value });
       throw createHttpError(
         400,
         "qty debe ser un número entero entre 1 y 100",
@@ -27,26 +29,34 @@ class MocksService {
 
   generateUsers(qty = 1) {
     qty = this.validateQty(qty);
-    return Array.from({ length: qty }, () => generateMockUser());
+    const result = Array.from({ length: qty }, () => generateMockUser());
+    logger.debug("Usuarios mock generados", { quantity: result.length });
+    return result;
   }
 
   generateDrivers(qty = 1) {
     qty = this.validateQty(qty);
-    return Array.from({ length: qty }, () => generateMockDriver());
+    const result = Array.from({ length: qty }, () => generateMockDriver());
+    logger.debug("Repartidores mock generados", { quantity: result.length });
+    return result;
   }
 
   generateOrders(qty = 1, userId) {
     qty = this.validateQty(qty);
-    return Array.from({ length: qty }, () => generateMockOrder(userId));
+    const result = Array.from({ length: qty }, () => generateMockOrder(userId));
+    logger.debug("Pedidos mock generados", { quantity: result.length });
+    return result;
   }
 
   generateDeliveries(qty = 1, orderId, driverId) {
     qty = this.validateQty(qty);
 
-    return Array.from(
+    const result = Array.from(
       { length: qty },
       () => generateMockDelivery(orderId, driverId)
     );
+    logger.debug("Entregas mock generadas", { quantity: result.length });
+    return result;
   }
 
   async seed(qty = 1) {
@@ -95,8 +105,10 @@ class MocksService {
         };
       });
 
+      logger.info("Seed de datos mock completado", result);
       return result;
     } catch (error) {
+      logger.error("Falló el seed de datos mock", { message: error.message });
       if (error?.name === "CustomError") {
         throw error;
       }

@@ -6,3 +6,6 @@ cookies.txt
 admincookies.txt
 usercookies.txt
 cookies.txt
+
+# Logs generados por Winston
+logs/
