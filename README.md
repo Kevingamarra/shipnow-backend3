@@ -663,14 +663,16 @@ El comportamiento se configura mediante `NODE_ENV`.
 
 Los archivos se generan dentro de `logs/`, en la raíz del proyecto.
 
-- `combined-YYYY-MM-DD.log`: registro general de la aplicación.
-- `error.log`: errores y fallas críticas.
+- `combined-YYYY-MM-DD.log`: registro general.
+- `error-YYYY-MM-DD.log`: errores y fallas críticas, incluidos los niveles
+  `error` y `fatal`.
 
-El archivo general utiliza rotación diaria, con un tamaño máximo de 20 MB
-por archivo y una retención de 14 días.
+Ambos archivos utilizan `winston-daily-rotate-file`, con rotación diaria,
+un tamaño máximo de 20 MB por archivo y una retención de 14 días.
 
-El archivo `error.log` rota por tamaño, con un límite de 20 MB y hasta
-14 archivos históricos.
+En desarrollo, la consola muestra desde `debug`. En producción, la consola
+registra desde `info`, por lo que `debug` y `http` no aparecen en ella.
+El archivo general conserva todos los niveles desde `debug`, también en producción.
 
 La carpeta `logs/` está excluida de Git mediante `.gitignore`.
 

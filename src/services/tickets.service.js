@@ -72,6 +72,13 @@ class TicketsService {
       reservationCode
     });
 
+    logger.info("Ticket creado correctamente", {
+      ticketId: ticket._id.toString(),
+      eventId: eventId.toString(),
+      userId: userId.toString(),
+      quantity
+    });
+
     const user = await usersRepository.getById(userId);
 
     if (user) {
