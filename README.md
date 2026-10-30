@@ -709,3 +709,73 @@ La respuesta debe ser HTTP 200 y confirmar la ejecución de los seis niveles.
 Se pueden revisar los registros en los archivos de la carpeta `logs/`.
 
 Este endpoint es una herramienta de diagnóstico y no una operación de negocio.
+
+## Documentación de API con Swagger - Módulo 5
+
+ShipNow utiliza Swagger UI y OpenAPI 3.0.3 para documentar y probar los endpoints de la API REST.
+
+### Iniciar el proyecto
+
+Instalar las dependencias con npm install y configurar las variables de entorno según las instrucciones generales del README. Iniciar el servidor con npm run dev.
+
+### Acceder a Swagger UI
+
+Con el servidor funcionando en el puerto 4000, abrir http://localhost:4000/api/docs/ en el navegador.
+
+### Módulos documentados
+
+- Users: consulta de usuarios registrados y generación de usuarios ficticios.
+- Orders: generación de pedidos ficticios.
+- Deliveries: generación de entregas ficticias.
+- Mocks: generación de usuarios, repartidores, pedidos y entregas; inserción de datos de prueba.
+- Logger: endpoint de diagnóstico para verificar los niveles de Winston.
+
+### Endpoints documentados
+
+- GET /api/users
+- GET /api/mocks/users
+- GET /api/mocks/drivers
+- GET /api/mocks/orders
+- GET /api/mocks/deliveries
+- POST /api/mocks/seed
+- GET /api/logger/test
+- POST /api/sessions/register
+- POST /api/sessions/login
+- GET /api/sessions/current
+- POST /api/sessions/logout
+
+### Probar los endpoints
+
+Desde Swagger UI, desplegar un endpoint, seleccionar Try it out, completar los parámetros y ejecutar la solicitud.
+
+Los endpoints de mocks utilizan el parámetro opcional qty, que acepta números enteros entre 1 y 100. El valor predeterminado es 1.
+
+GET /api/users requiere una cookie JWT válida y permisos de administrador. Sin autenticación devuelve HTTP 401 y sin permisos devuelve HTTP 403.
+
+POST /api/mocks/seed inserta datos reales de prueba en MongoDB mediante una transacción. Utilizarlo únicamente cuando se desee cargar registros.
+
+Los endpoints GET de mocks generan datos ficticios sin guardarlos en la base de datos.
+
+### Autenticación desde Swagger
+
+POST /api/sessions/register recibe first_name, last_name, email y password mediante un body JSON. La contraseña debe tener al menos 6 caracteres.
+
+POST /api/sessions/login recibe email y password. Si las credenciales son correctas, el servidor establece la cookie HttpOnly currentUser con un JWT válido durante una hora.
+
+GET /api/sessions/current requiere esa cookie y devuelve los datos del usuario autenticado. POST /api/sessions/logout elimina la cookie y no requiere autenticación previa.
+
+GET /api/users requiere un usuario autenticado con rol ADMIN. Los usuarios registrados normalmente reciben el rol USER, por lo que no pueden acceder a esa operación sin permisos adicionales.
+
+POST /api/mocks/seed recibe qty como parámetro de consulta y no requiere body JSON. Inserta datos en MongoDB; utilizarlo con precaución.
+
+### Schemas reutilizables
+
+La especificación OpenAPI incluye los schemas User, OrderItem, Order, Delivery, ErrorResponse y SuccessResponse.
+
+### Organización de Swagger
+
+La configuración principal se encuentra en src/config/swagger.config.js. Los schemas están en src/docs/schemas y las operaciones documentadas en src/docs/paths.
+
+### Alcance actual
+
+Los pedidos y las entregas se encuentran disponibles mediante sus endpoints de generación de mocks. No se documentan rutas CRUD de pedidos o entregas porque no están implementadas actualmente.

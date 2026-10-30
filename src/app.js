@@ -1,3 +1,5 @@
+import swaggerSpec from "./config/swagger.config.js";
+import swaggerUi from "swagger-ui-express";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -30,6 +32,8 @@ app.use(httpLogger);
 
 initializePassport();
 app.use(passport.initialize());
+
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get("/api/health", (req, res) => {
   res.json({
