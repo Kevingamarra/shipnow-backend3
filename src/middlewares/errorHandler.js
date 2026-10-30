@@ -38,13 +38,13 @@ const errorHandler = (err, req, res, next) => {
   };
 
   if (status >= 500) {
-    logger.error("Error inesperado al procesar una solicitud", {
+    (req.logger ?? logger).error("Error inesperado al procesar una solicitud", {
       ...context,
       error: err.message,
       stack: err.stack
     });
   } else {
-    logger.warning("Solicitud rechazada", context);
+    (req.logger ?? logger).warning("Solicitud rechazada", context);
   }
 
   return res.status(status).json({

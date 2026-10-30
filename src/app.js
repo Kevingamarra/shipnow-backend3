@@ -17,12 +17,16 @@ import loggerRoutes from "./routes/loggerRoutes.js";
 import { createHttpError } from "./utils/httpError.js";
 import logger from "./utils/logger.js";
 import errorHandler from "./middlewares/errorHandler.js";
+import { injectLogger, httpLogger } from "./middlewares/httpLogger.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+
+app.use(injectLogger);
+app.use(httpLogger);
 
 initializePassport();
 app.use(passport.initialize());

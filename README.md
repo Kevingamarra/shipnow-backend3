@@ -655,9 +655,11 @@ ShipNow utiliza Winston para centralizar los registros de la aplicación y
 
 El comportamiento se configura mediante `NODE_ENV`.
 
-- `development`: la consola muestra todos los niveles, incluido `debug`.
-- `production`: la consola registra desde `info`.
-- El archivo general conserva registros desde `debug`.
+- `development`: la consola y el archivo general registran desde `debug`.
+- `production`: la consola y el archivo general registran desde `info`.
+- El archivo de errores registra desde `error`, incluidos los errores críticos `fatal`.
+
+En producción, los niveles `debug` y `http` quedan excluidos de la consola y del archivo general.
 
 ### Archivos de logs
 
@@ -670,11 +672,28 @@ Los archivos se generan dentro de `logs/`, en la raíz del proyecto.
 Ambos archivos utilizan `winston-daily-rotate-file`, con rotación diaria,
 un tamaño máximo de 20 MB por archivo y una retención de 14 días.
 
-En desarrollo, la consola muestra desde `debug`. En producción, la consola
-registra desde `info`, por lo que `debug` y `http` no aparecen en ella.
-El archivo general conserva todos los niveles desde `debug`, también en producción.
+En desarrollo, la consola y el archivo general muestran desde `debug`.
+En producción, ambos registran desde `info`, por lo que `debug` y `http`
+no se guardan en esos destinos. El archivo de errores conserva los niveles
+`error` y `fatal`.
 
 La carpeta `logs/` está excluida de Git mediante `.gitignore`.
+
+### Registro de solicitudes HTTP
+
+El middleware `src/middlewares/httpLogger.js` registra automáticamente
+cada solicitud HTTP cuando finaliza su respuesta.
+
+Cada registro incluye:
+
+- Método HTTP.
+- Ruta solicitada.
+- Código de estado HTTP.
+- Duración de procesamiento en milisegundos.
+
+El middleware `injectLogger` agrega el logger a `req.logger`, permitiendo
+utilizarlo desde otros middlewares y controladores. El middleware
+`httpLogger` registra las solicitudes con el nivel `http`.
 
 ### Probar el logger
 
