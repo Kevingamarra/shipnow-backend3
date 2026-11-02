@@ -9,3 +9,4 @@ cookies.txt
 
 # Logs generados por Winston
 logs/
+.env.test

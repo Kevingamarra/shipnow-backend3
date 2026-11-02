@@ -778,7 +778,7 @@ La configuración principal se encuentra en src/config/swagger.config.js. Los sc
 
 ### Alcance actual
 
-Los pedidos y las entregas se encuentran disponibles mediante sus endpoints de generación de mocks. No se documentan rutas CRUD de pedidos o entregas porque no están implementadas actualmente.
+Además de los endpoints de mocks, el módulo Orders dispone de rutas funcionales para listar pedidos, consultar por ID, crear pedidos y actualizar su estado. Las entregas continúan disponibles mediante los endpoints de mocks.
 ### Tests automatizados de Swagger
 
 El proyecto incluye pruebas automatizadas de la documentación OpenAPI mediante node:test, sin dependencias adicionales.
@@ -786,9 +786,127 @@ El proyecto incluye pruebas automatizadas de la documentación OpenAPI mediante 
 Para ejecutarlas:
 
 ```bash
-npm test
+npm run test:swagger
 ```
 
 Las pruebas verifican la estructura básica de OpenAPI, los cinco tags, los seis schemas reutilizables, las descripciones y respuestas de las operaciones, y las referencias internas. No requieren iniciar el servidor ni conectarse a MongoDB.
 
 Estas pruebas no sustituyen la validación completa del estándar OpenAPI ni las pruebas funcionales de los endpoints.
+
+---
+
+# Pre-entrega Módulo 6 — Testing funcional de la API
+
+## Objetivo
+
+Implementar pruebas funcionales automatizadas sobre la API REST de ShipNow mediante Mocha, Chai y Supertest, validando respuestas HTTP, persistencia, autenticación, autorización y manejo de errores.
+
+## Herramientas
+
+- Mocha: ejecución y organización de pruebas funcionales.
+- Chai: aserciones sobre respuestas y datos.
+- Supertest: solicitudes HTTP directamente sobre la aplicación Express.
+- MongoDB Atlas: base de datos de pruebas aislada.
+- node:test: pruebas independientes de la especificación Swagger.
+
+## Entorno de pruebas
+
+Las pruebas funcionales utilizan un archivo local `.env.test` con `NODE_ENV=test` y una base de datos llamada `shipnow_test`.
+
+El archivo `.env.test` no se versiona ni debe contenerse en el repositorio público.
+
+La utilidad `tests/helpers/testDatabase.js` verifica el entorno y el nombre de la base antes de conectarse. Las pruebas que insertan registros realizan limpieza de los documentos creados.
+
+Se requiere una instancia de MongoDB compatible con transacciones para probar el endpoint de seed.
+
+## Endpoints funcionales de pedidos
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| GET | /api/orders | Lista los pedidos registrados |
+| GET | /api/orders/:id | Consulta un pedido por su ID |
+| POST | /api/orders | Crea un pedido |
+| PATCH | /api/orders/:id/status | Actualiza el estado de un pedido |
+
+### Ejemplo de creación de pedido
+
+```json
+{
+  "user": "507f1f77bcf86cd799439011",
+  "products": [
+    {
+      "product": "507f191e810c19729de860ea",
+      "quantity": 2
+    }
+  ],
+  "total": 1500,
+  "priority": "HIGH"
+}
+```
+
+Los identificadores del ejemplo son ilustrativos. El servicio valida su formato, pero no comprueba actualmente que los usuarios y productos referenciados existan.
+
+Estados permitidos: `PENDING`, `CONFIRMED`, `PREPARING`, `DELIVERED` y `CANCELLED`.
+
+Ejemplo de actualización:
+
+```json
+{
+  "status": "CONFIRMED"
+}
+```
+
+**Advertencia:** las rutas de pedidos todavía no cuentan con middleware de autenticación y autorización. No deben exponerse públicamente sin incorporar controles de acceso.
+
+## Casos cubiertos
+
+- Generación de usuarios, repartidores, pedidos y entregas mock.
+- Validación de cantidades incorrectas.
+- Inserción de datos mediante el endpoint seed.
+- Listado, creación y consulta individual de pedidos.
+- Actualización del estado de un pedido.
+- Rechazo de datos incompletos y cantidades inválidas.
+- Rechazo de estados e identificadores incorrectos.
+- Respuestas 404 para recursos inexistentes.
+- Respuestas 401 y 403 para autenticación y permisos.
+- Consulta de usuarios con rol administrador.
+- Verificación del endpoint de logging.
+- Acceso a Swagger UI y manejo de rutas inexistentes.
+
+## Ejecutar las pruebas
+
+Instalar las dependencias:
+
+```bash
+npm install
+```
+
+Configurar localmente `.env.test` con las variables requeridas y una URI de MongoDB que apunte a `shipnow_test`. No utilizar una base de datos de producción.
+
+Ejecutar las pruebas funcionales:
+
+```bash
+npm test
+```
+
+Ejecutar las pruebas de Swagger:
+
+```bash
+npm run test:swagger
+```
+
+## Resultados verificados
+
+- 26 pruebas funcionales aprobadas.
+- 5 pruebas de Swagger aprobadas.
+- 31 pruebas aprobadas en total.
+
+Los tests funcionales utilizan hooks de preparación y limpieza. Para comprobar que pueden repetirse, ejecutar `npm test` dos veces consecutivas.
+
+## Documentación OpenAPI
+
+Los endpoints CRUD de pedidos se encuentran documentados en `src/docs/paths/orders.paths.js` y registrados en la configuración de Swagger.
+
+Con el servidor iniciado, consultar:
+
+http://localhost:4000/api/docs/

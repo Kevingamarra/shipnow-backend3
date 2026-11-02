@@ -2,6 +2,7 @@ import { applySchemaEnums } from "../docs/schemas/schema-enums.js";
 import sessionPaths from "../docs/paths/sessions.paths.js";
 import systemPaths from "../docs/paths/system.paths.js";
 import mockPaths from "../docs/paths/mocks.paths.js";
+import orderPaths from "../docs/paths/orders.paths.js";
 import swaggerJSDoc from "swagger-jsdoc";
 
 const swaggerOptions = {
@@ -59,7 +60,7 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
-swaggerSpec.paths = { ...swaggerSpec.paths, ...mockPaths, ...systemPaths, ...sessionPaths };
+swaggerSpec.paths = { ...swaggerSpec.paths, ...mockPaths, ...systemPaths, ...sessionPaths, ...orderPaths };
 
 export default swaggerSpec;
 
