@@ -779,3 +779,16 @@ La configuración principal se encuentra en src/config/swagger.config.js. Los sc
 ### Alcance actual
 
 Los pedidos y las entregas se encuentran disponibles mediante sus endpoints de generación de mocks. No se documentan rutas CRUD de pedidos o entregas porque no están implementadas actualmente.
+### Tests automatizados de Swagger
+
+El proyecto incluye pruebas automatizadas de la documentación OpenAPI mediante node:test, sin dependencias adicionales.
+
+Para ejecutarlas:
+
+```bash
+npm test
+```
+
+Las pruebas verifican la estructura básica de OpenAPI, los cinco tags, los seis schemas reutilizables, las descripciones y respuestas de las operaciones, y las referencias internas. No requieren iniciar el servidor ni conectarse a MongoDB.
+
+Estas pruebas no sustituyen la validación completa del estándar OpenAPI ni las pruebas funcionales de los endpoints.
