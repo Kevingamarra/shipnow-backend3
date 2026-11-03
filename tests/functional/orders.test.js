@@ -3,6 +3,7 @@ import { expect } from "chai";
 import request from "supertest";
 import mongoose from "mongoose";
 import app from "../../src/app.js";
+import ordersRepository from "../../src/repositories/orders.repository.js";
 import Order from "../../src/models/Order.js";
 import User from "../../src/models/User.js";
 import Product from "../../src/models/Product.js";
@@ -88,6 +89,28 @@ describe("Pedidos - pruebas funcionales", function () {
     expect(response.body.status).to.equal("success");
     expect(response.body.payload).to.be.an("array");
     expect(response.body.payload.some(order => order._id === orderId)).to.equal(true);
+  });
+
+
+  it("GET /api/orders devuelve 500 ante un error interno", async function () {
+    const originalGetAll = ordersRepository.getAll;
+
+    try {
+      ordersRepository.getAll = async () => {
+        throw new Error("Fallo simulado de base de datos");
+      };
+
+      const response = await api.get("/api/orders");
+
+      expect(response.status).to.equal(500);
+      expect(response.body).to.deep.equal({
+        status: "error",
+        code: "INTERNAL_ERROR",
+        message: "Error interno del servidor"
+      });
+    } finally {
+      ordersRepository.getAll = originalGetAll;
+    }
   });
 
   it("GET /api/orders/:id devuelve el pedido creado", async function () {

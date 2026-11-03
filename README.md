@@ -927,9 +927,9 @@ npm run test:swagger
 
 ## Resultados verificados
 
-- 28 pruebas funcionales aprobadas.
+- 29 pruebas funcionales aprobadas.
 - 5 pruebas de Swagger aprobadas.
-- 33 pruebas automatizadas aprobadas en total.
+- 34 pruebas automatizadas aprobadas en total.
 - Validación de respuestas exitosas, errores HTTP y formato de respuesta.
 - Datos controlados con preparación y limpieza automática.
 - Entorno de testing separado del entorno de desarrollo.
