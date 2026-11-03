@@ -4,18 +4,46 @@ import request from "supertest";
 import mongoose from "mongoose";
 import app from "../../src/app.js";
 import Order from "../../src/models/Order.js";
+import User from "../../src/models/User.js";
+import Product from "../../src/models/Product.js";
 import { connectTestDatabase, disconnectTestDatabase, assertTestDatabase } from "../helpers/testDatabase.js";
 
 const api = request(app);
-const userId = new mongoose.Types.ObjectId();
-const productId = new mongoose.Types.ObjectId();
+let userId;
+let productId;
 const createdIds = [];
+const testUserIds = [];
+const testProductIds = [];
 
 describe("Pedidos - pruebas funcionales", function () {
   let orderId;
 
   before(async function () {
     await connectTestDatabase();
+    assertTestDatabase();
+
+    const uniqueEmail = "orders-test-" + new mongoose.Types.ObjectId().toString() + "@example.com";
+
+    const user = await User.create({
+      first_name: "Usuario",
+      last_name: "Testing",
+      email: uniqueEmail,
+      password: "testing-only-not-for-login",
+      role: "USER"
+    });
+
+    userId = user._id;
+    testUserIds.push(userId);
+
+    const product = await Product.create({
+      name: "Producto de testing",
+      price: 750,
+      category: "testing",
+      subcat: "functional"
+    });
+
+    productId = product._id;
+    testProductIds.push(productId);
   });
 
   after(async function () {
@@ -23,6 +51,12 @@ describe("Pedidos - pruebas funcionales", function () {
       assertTestDatabase();
       if (createdIds.length) {
         await Order.deleteMany({ _id: { $in: createdIds } });
+      }
+      if (testProductIds.length) {
+        await Product.deleteMany({ _id: { $in: testProductIds } });
+      }
+      if (testUserIds.length) {
+        await User.deleteMany({ _id: { $in: testUserIds } });
       }
     } finally {
       await disconnectTestDatabase();
@@ -99,6 +133,34 @@ describe("Pedidos - pruebas funcionales", function () {
     expect(response.status).to.equal(200);
     expect(response.body.status).to.equal("success");
     expect(response.body.payload.status).to.equal("CONFIRMED");
+  });
+
+  it("PATCH /api/orders/:id/status devuelve 404 si no existe", async function () {
+    const missingId = new mongoose.Types.ObjectId().toString();
+
+    const response = await api
+      .patch("/api/orders/" + missingId + "/status")
+      .send({ status: "CONFIRMED" });
+
+    expect(response.status).to.equal(404);
+    expect(response.body).to.include({
+      status: "error",
+      code: "ORDER_NOT_FOUND",
+      message: "Pedido no encontrado"
+    });
+  });
+
+  it("PATCH /api/orders/:id/status rechaza un ID inválido", async function () {
+    const response = await api
+      .patch("/api/orders/id-invalido/status")
+      .send({ status: "CONFIRMED" });
+
+    expect(response.status).to.equal(400);
+    expect(response.body).to.include({
+      status: "error",
+      code: "BAD_REQUEST",
+      message: "El ID del pedido no es válido"
+    });
   });
 
   it("PATCH /api/orders/:id/status rechaza estados inválidos", async function () {

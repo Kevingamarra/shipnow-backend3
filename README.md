@@ -811,13 +811,40 @@ Implementar pruebas funcionales automatizadas sobre la API REST de ShipNow media
 
 ## Entorno de pruebas
 
-Las pruebas funcionales utilizan un archivo local `.env.test` con `NODE_ENV=test` y una base de datos llamada `shipnow_test`.
+Las pruebas funcionales utilizan un entorno separado del desarrollo mediante el archivo local `.env.test` y la base de datos MongoDB `shipnow_test`.
 
-El archivo `.env.test` no se versiona ni debe contenerse en el repositorio público.
+Para configurar el entorno, copiar la plantilla:
 
-La utilidad `tests/helpers/testDatabase.js` verifica el entorno y el nombre de la base antes de conectarse. Las pruebas que insertan registros realizan limpieza de los documentos creados.
+```bash
+cp .env.test.example .env.test
+```
 
-Se requiere una instancia de MongoDB compatible con transacciones para probar el endpoint de seed.
+Editar `.env.test` y reemplazar los valores de ejemplo por los correspondientes al entorno de testing.
+
+### Variables de entorno
+
+| Variable | Descripción |
+| --- | --- |
+| NODE_ENV | Debe ser `test` |
+| PORT | Puerto reservado para testing, por ejemplo `4001` |
+| MONGODB_URI | Conexión a MongoDB con base `shipnow_test` |
+| JWT_SECRET | Clave JWT exclusiva para testing |
+| JWT_EXPIRES_IN | Duración del token, por ejemplo `1h` |
+| MAIL_HOST | Servidor SMTP, si se utiliza |
+| MAIL_PORT | Puerto SMTP, si se utiliza |
+| MAIL_USER | Usuario SMTP, si se utiliza |
+| MAIL_PASS | Contraseña SMTP, si se utiliza |
+| MAIL_FROM | Remitente de correo, si se utiliza |
+
+Los archivos `.env` y `.env.test` están excluidos del repositorio mediante `.gitignore`. La plantilla `.env.test.example` no contiene credenciales reales y puede versionarse.
+
+La utilidad `tests/helpers/testDatabase.js` verifica que `NODE_ENV=test` y que la conexión utilice exclusivamente la base `shipnow_test`.
+
+Los tests crean datos controlados, incluidos usuarios y productos de prueba para los pedidos, y eliminan los documentos generados mediante hooks de limpieza.
+
+No se utilizan datos cargados manualmente ni se ejecuta `dropDatabase()`.
+
+Para probar el endpoint seed se requiere una instancia de MongoDB compatible con transacciones.
 
 ## Endpoints funcionales de pedidos
 
@@ -881,27 +908,39 @@ Instalar las dependencias:
 npm install
 ```
 
-Configurar localmente `.env.test` con las variables requeridas y una URI de MongoDB que apunte a `shipnow_test`. No utilizar una base de datos de producción.
+Configurar previamente `.env.test` utilizando `.env.test.example` y una base MongoDB exclusiva para testing.
 
-Ejecutar las pruebas funcionales:
+Ejecutar la suite completa:
 
 ```bash
 npm test
 ```
 
-Ejecutar las pruebas de Swagger:
+Este comando ejecuta consecutivamente las pruebas funcionales con Mocha, Chai y Supertest y las pruebas de Swagger con node:test.
+
+También pueden ejecutarse por separado:
 
 ```bash
+npm run test:functional
 npm run test:swagger
 ```
 
 ## Resultados verificados
 
-- 26 pruebas funcionales aprobadas.
+- 28 pruebas funcionales aprobadas.
 - 5 pruebas de Swagger aprobadas.
-- 31 pruebas aprobadas en total.
+- 33 pruebas automatizadas aprobadas en total.
+- Validación de respuestas exitosas, errores HTTP y formato de respuesta.
+- Datos controlados con preparación y limpieza automática.
+- Entorno de testing separado del entorno de desarrollo.
 
-Los tests funcionales utilizan hooks de preparación y limpieza. Para comprobar que pueden repetirse, ejecutar `npm test` dos veces consecutivas.
+Para comprobar la repetibilidad de la suite:
+
+```bash
+npm test && npm test
+```
+
+Ambas ejecuciones deben finalizar correctamente sin limpiar manualmente la base de datos.
 
 ## Documentación OpenAPI
 

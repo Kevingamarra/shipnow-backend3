@@ -7,8 +7,9 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node --env-file=.env.test ./node_modules/mocha/bin/mocha.js \"tests/functional/**/*.test.js\" --timeout 15000",
-    "test:swagger": "node --test tests/swagger.test.js"
+    "test": "npm run test:functional && npm run test:swagger",
+    "test:swagger": "node --test tests/swagger.test.js",
+    "test:functional": "node --env-file=.env.test ./node_modules/mocha/bin/mocha.js \"tests/functional/**/*.test.js\" --timeout 15000"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
