@@ -47,3 +47,57 @@ test("Todas las referencias internas de OpenAPI existen", () => {
     assert.ok(target, `Referencia inexistente: ${reference}`);
   }
 });
+
+test("Los endpoints de carga de archivos están documentados", () => {
+  const endpoints = [
+    "/api/users/{id}/documents",
+    "/api/orders/{id}/proof"
+  ];
+
+  for (const endpoint of endpoints) {
+    const operation = swaggerSpec.paths[endpoint]?.post;
+
+    assert.ok(operation, `Falta POST ${endpoint}`);
+    assert.ok(operation.summary, `Falta el resumen de ${endpoint}`);
+    assert.ok(operation.responses["201"], `Falta HTTP 201 en ${endpoint}`);
+    assert.ok(operation.responses["400"], `Falta HTTP 400 en ${endpoint}`);
+    assert.ok(operation.responses["413"], `Falta HTTP 413 en ${endpoint}`);
+  }
+});
+
+test("Las cargas utilizan multipart/form-data con archivo obligatorio", () => {
+  const endpoints = [
+    "/api/users/{id}/documents",
+    "/api/orders/{id}/proof"
+  ];
+
+  for (const endpoint of endpoints) {
+    const operation = swaggerSpec.paths[endpoint].post;
+    const schema = operation.requestBody.content["multipart/form-data"].schema;
+
+    assert.ok(schema, `Falta multipart/form-data en ${endpoint}`);
+    assert.ok(schema.required.includes("file"));
+    assert.equal(schema.properties.file.type, "string");
+    assert.equal(schema.properties.file.format, "binary");
+  }
+});
+
+test("La documentación de usuarios exige autenticación y documentType", () => {
+  const operation =
+    swaggerSpec.paths["/api/users/{id}/documents"].post;
+
+  const schema =
+    operation.requestBody.content["multipart/form-data"].schema;
+
+  assert.deepEqual(operation.security, [{ cookieAuth: [] }]);
+
+  assert.ok(schema.required.includes("documentType"));
+
+  assert.deepEqual(
+    schema.properties.documentType.enum,
+    ["DNI", "LICENSE", "OTHER"]
+  );
+
+  assert.ok(operation.responses["401"]);
+  assert.ok(operation.responses["403"]);
+});

@@ -4,7 +4,7 @@ import request from "supertest";
 import app from "../../src/app.js";
 import User from "../../src/models/User.js";
 import { generateToken } from "../../src/utils/jwt.js";
-import { connectTestDatabase, disconnectTestDatabase, assertTestDatabase } from "../helpers/testDatabase.js";
+import { assertTestDatabase } from "../helpers/testDatabase.js";
 
 const api = request(app);
 const testUsers = [];
@@ -15,7 +15,6 @@ describe("Usuarios - autenticación y autorización", function () {
   let adminId;
 
   before(async function () {
-    await connectTestDatabase();
 
     const suffix = Date.now() + "-" + Math.random().toString(36).slice(2);
 
@@ -49,7 +48,6 @@ describe("Usuarios - autenticación y autorización", function () {
         await User.deleteMany({ _id: { $in: testUsers } });
       }
     } finally {
-      await disconnectTestDatabase();
     }
   });
 

@@ -6,7 +6,7 @@ import app from "../../src/app.js";
 import User from "../../src/models/User.js";
 import Order from "../../src/models/Order.js";
 import Delivery from "../../src/models/Delivery.js";
-import { connectTestDatabase, disconnectTestDatabase, assertTestDatabase } from "../helpers/testDatabase.js";
+import { assertTestDatabase } from "../helpers/testDatabase.js";
 
 const api = request(app);
 
@@ -16,7 +16,6 @@ describe("Mocks - seed en MongoDB", function () {
   const createdDeliveryIds = [];
 
   before(async function () {
-    await connectTestDatabase();
   });
 
   after(async function () {
@@ -32,7 +31,6 @@ describe("Mocks - seed en MongoDB", function () {
         await User.deleteMany({ _id: { $in: createdUserIds } });
       }
     } finally {
-      await disconnectTestDatabase();
     }
   });
 

@@ -7,7 +7,7 @@ import ordersRepository from "../../src/repositories/orders.repository.js";
 import Order from "../../src/models/Order.js";
 import User from "../../src/models/User.js";
 import Product from "../../src/models/Product.js";
-import { connectTestDatabase, disconnectTestDatabase, assertTestDatabase } from "../helpers/testDatabase.js";
+import { assertTestDatabase } from "../helpers/testDatabase.js";
 
 const api = request(app);
 let userId;
@@ -20,7 +20,6 @@ describe("Pedidos - pruebas funcionales", function () {
   let orderId;
 
   before(async function () {
-    await connectTestDatabase();
     assertTestDatabase();
 
     const uniqueEmail = "orders-test-" + new mongoose.Types.ObjectId().toString() + "@example.com";
@@ -60,7 +59,6 @@ describe("Pedidos - pruebas funcionales", function () {
         await User.deleteMany({ _id: { $in: testUserIds } });
       }
     } finally {
-      await disconnectTestDatabase();
     }
   });
 

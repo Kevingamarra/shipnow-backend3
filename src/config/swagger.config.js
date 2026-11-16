@@ -1,3 +1,4 @@
+import uploadPaths from "../docs/paths/uploads.paths.js";
 import { applySchemaEnums } from "../docs/schemas/schema-enums.js";
 import sessionPaths from "../docs/paths/sessions.paths.js";
 import systemPaths from "../docs/paths/system.paths.js";
@@ -60,7 +61,7 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
-swaggerSpec.paths = { ...swaggerSpec.paths, ...mockPaths, ...systemPaths, ...sessionPaths, ...orderPaths };
+swaggerSpec.paths = { ...swaggerSpec.paths, ...mockPaths, ...systemPaths, ...sessionPaths, ...orderPaths, ...uploadPaths };
 
 export default swaggerSpec;
 

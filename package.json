@@ -9,7 +9,8 @@
     "dev": "node --watch src/server.js",
     "test": "npm run test:functional && npm run test:swagger",
     "test:swagger": "node --test tests/swagger.test.js",
-    "test:functional": "node --env-file=.env.test ./node_modules/mocha/bin/mocha.js \"tests/functional/**/*.test.js\" --timeout 15000"
+    "test:functional": "node --env-file=.env.test ./node_modules/mocha/bin/mocha.js --require tests/helpers/globalSetup.js \"tests/functional/**/*.test.js\" --timeout 15000",
+    "pretest": "node scripts/prepareTestEnv.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -19,6 +20,7 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.4.1",
+    "multer": "^2.5.0",
     "nodemailer": "^9.0.4",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",

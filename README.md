@@ -949,3 +949,198 @@ Los endpoints CRUD de pedidos se encuentran documentados en `src/docs/paths/orde
 Con el servidor iniciado, consultar:
 
 http://localhost:4000/api/docs/
+
+
+---
+
+# Pre-entrega Módulo 7 — Carga de archivos
+
+## Objetivo
+
+Implementar la carga de documentos de usuarios y comprobantes de pedidos mediante Multer, con validaciones, persistencia de metadatos, manejo centralizado de errores y pruebas automatizadas.
+
+## Tecnologías
+
+- Multer para procesar archivos multipart/form-data.
+- Express para gestionar las solicitudes HTTP.
+- MongoDB y Mongoose para almacenar metadatos.
+- Winston para registrar cargas y solicitudes rechazadas.
+- Mocha, Chai y Supertest para las pruebas funcionales.
+- Swagger y OpenAPI 3.0.3 para documentar los endpoints.
+
+## Configuración y almacenamiento
+
+La configuración de Multer se encuentra en `src/config/multer.config.js`.
+
+- `uploads/users/`: documentos de usuarios.
+- `uploads/orders/`: comprobantes de pedidos.
+
+Los archivos reciben nombres únicos y la carpeta `uploads/` está excluida de Git.
+
+### Restricciones
+
+| Característica | Valor |
+| --- | --- |
+| Tamaño máximo | 5 MB |
+| Formatos permitidos | PDF, JPG/JPEG y PNG |
+| Campo de archivo | `file` |
+| Tipo de solicitud | `multipart/form-data` |
+
+Además del MIME declarado, el servicio verifica la firma inicial del archivo para detectar contenidos incompatibles con su formato.
+
+## Endpoints
+
+### POST /api/users/:id/documents
+
+Carga un documento asociado a un usuario existente. Requiere una cookie JWT válida y permisos de administrador.
+
+Campos obligatorios:
+
+- `file`: archivo PDF, JPG o PNG.
+- `documentType`: `DNI`, `LICENSE` u `OTHER`.
+
+Ejemplo:
+
+~~~bash
+curl -i -X POST \
+  "http://localhost:4000/api/users/ID_USUARIO/documents" \
+  -H "Cookie: currentUser=TOKEN_JWT" \
+  -F "documentType=DNI" \
+  -F "file=@./documento.pdf"
+~~~
+
+Reemplazar los identificadores, el token y la ruta del archivo por valores válidos.
+
+Respuesta exitosa: HTTP 201, con el usuario actualizado en `payload`.
+
+### POST /api/orders/:id/proof
+
+Carga un comprobante asociado a un pedido existente.
+
+Campo obligatorio: `file`.
+
+Ejemplo:
+
+~~~bash
+curl -i -X POST \
+  "http://localhost:4000/api/orders/ID_PEDIDO/proof" \
+  -F "file=@./comprobante.pdf"
+~~~
+
+Respuesta exitosa: HTTP 201, con el pedido actualizado en `payload`.
+
+**Advertencia de seguridad:** esta ruta todavía no requiere autenticación. Se deben incorporar controles de acceso antes de exponerla públicamente.
+
+## Metadatos
+
+El esquema `src/models/FileMetadata.js` registra:
+
+| Campo | Descripción |
+| --- | --- |
+| originalName | Nombre original |
+| filename | Nombre generado por el servidor |
+| path | Ruta del archivo |
+| mimeType | Tipo MIME |
+| size | Tamaño en bytes |
+| documentType | Tipo de documento |
+| uploadedAt | Fecha de carga |
+
+Los usuarios almacenan sus archivos en `documents` y los pedidos en `proofs`. Los comprobantes utilizan el tipo `ORDER_PROOF`.
+
+## Validaciones y errores
+
+| Código | HTTP | Motivo |
+| --- | --- | --- |
+| FILE_REQUIRED | 400 | Falta el archivo |
+| INVALID_FILE_TYPE | 400 | Formato o contenido inválido |
+| INVALID_DOCUMENT_TYPE | 400 | Tipo de documento inválido |
+| INVALID_FILE_FIELD | 400 | Campo incorrecto |
+| FILE_TOO_LARGE | 413 | Archivo superior a 5 MB |
+| USER_NOT_FOUND | 404 | Usuario inexistente |
+| ORDER_NOT_FOUND | 404 | Pedido inexistente |
+| UNAUTHORIZED | 401 | Falta autenticación |
+| FORBIDDEN | 403 | Permisos insuficientes |
+| FILE_SAVE_ERROR | 500 | Error de almacenamiento |
+
+El sistema intenta eliminar los archivos guardados cuando una operación falla, para evitar archivos residuales.
+
+## Swagger
+
+Los endpoints están documentados en `src/docs/paths/uploads.paths.js`.
+
+Con el servidor iniciado, consultar:
+
+http://localhost:4000/api/docs/
+
+La documentación incluye los formularios multipart, tipos de documento, permisos y respuestas HTTP.
+
+## Pruebas automatizadas
+
+Las pruebas funcionales están en `tests/functional/uploads.test.js` y verifican cargas exitosas, persistencia, formatos, tamaño, autenticación, autorización y limpieza de archivos rechazados.
+
+El entorno de pruebas utiliza exclusivamente MongoDB `shipnow_test` y las validaciones de `tests/helpers/testDatabase.js`.
+
+### Ejecutar las pruebas del módulo
+
+~~~bash
+node --env-file=.env.test ./node_modules/mocha/bin/mocha.js tests/functional/uploads.test.js --timeout 15000
+~~~
+
+### Ejecutar las pruebas Swagger
+
+~~~bash
+npm run test:swagger
+~~~
+
+### Ejecutar la suite completa
+
+~~~bash
+npm test
+~~~
+
+El total previsto es de 50 pruebas automatizadas, incluyendo los módulos anteriores.
+
+## Consideraciones para producción
+
+- Incorporar autenticación y autorización a la carga de comprobantes.
+- Restringir el acceso a los archivos almacenados.
+- Evaluar almacenamiento externo y políticas de retención.
+- Incorporar análisis antivirus y controles adicionales.
+- Establecer límites de almacenamiento por usuario.
+
+
+## Configuración automática del entorno de testing
+
+El proyecto incorpora un script `pretest` que se ejecuta automáticamente antes de `npm test`.
+
+Al ejecutar `npm test`:
+
+1. Si `.env.test` no existe, se genera a partir de `.env.test.example`.
+2. Se comprueba que estén configuradas las variables obligatorias.
+3. Se verifica que `NODE_ENV=test`.
+4. Se valida que `MONGODB_URI` apunte exclusivamente a la base `shipnow_test`.
+5. Si la configuración es válida, comienza la suite automatizada.
+
+La plantilla no contiene credenciales reales. Después de clonar el repositorio, es necesario configurar una URI válida de MongoDB para testing. Si falta alguna variable, el script muestra un mensaje indicando qué corregir.
+
+El script no sobrescribe un archivo `.env.test` existente.
+
+### Conexión MongoDB compartida
+
+Mocha utiliza `tests/helpers/globalSetup.js` para abrir una única conexión a MongoDB antes de ejecutar las pruebas funcionales y cerrarla al finalizar.
+
+Los archivos individuales conservan las verificaciones de seguridad y la limpieza de los datos que generan.
+
+### Ejecutar las pruebas
+
+~~~bash
+npm test
+~~~
+
+### Verificar la repetibilidad
+
+~~~bash
+npm test && npm test
+~~~
+
+Cada ejecución debe completar 42 pruebas funcionales y 8 pruebas Swagger, sin intervención manual entre ambas.

@@ -1,8 +1,14 @@
 import mongoose from "mongoose";
+import fileMetadataSchema from "./FileMetadata.js";
 import { ORDER_STATUS, ORDER_PRIORITY } from "../constants/index.js";
 
 const orderSchema = new mongoose.Schema(
   {
+    proofs: {
+      type: [fileMetadataSchema],
+      default: []
+    },
+
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

@@ -127,6 +127,30 @@ const ERROR_DICTIONARY = Object.freeze({
     status: 500,
     message: "No se pudieron insertar los datos de prueba"
   },
+  FILE_REQUIRED: {
+    status: 400,
+    message: "Debés adjuntar un archivo"
+  },
+  INVALID_FILE_TYPE: {
+    status: 400,
+    message: "Tipo de archivo no permitido. Solo PDF, JPG y PNG"
+  },
+  FILE_TOO_LARGE: {
+    status: 413,
+    message: "El archivo supera el tamaño máximo de 5 MB"
+  },
+  INVALID_FILE_FIELD: {
+    status: 400,
+    message: "El campo del archivo debe llamarse file"
+  },
+  INVALID_DOCUMENT_TYPE: {
+    status: 400,
+    message: "Tipo de documento inválido"
+  },
+  FILE_SAVE_ERROR: {
+    status: 500,
+    message: "No se pudo guardar el archivo"
+  },
   INTERNAL_ERROR: {
     status: 500,
     message: "Error interno del servidor"

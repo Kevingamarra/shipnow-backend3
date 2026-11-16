@@ -1,3 +1,4 @@
+import multer from "multer";
 import CustomError from "../errors/CustomError.js";
 import ERROR_DICTIONARY from "../errors/errorDictionary.js";
 import logger from "../utils/logger.js";
@@ -13,6 +14,20 @@ const errorHandler = (err, req, res, next) => {
   if (err instanceof CustomError) {
     code = err.code;
     status = err.status;
+  } else if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      code = "FILE_TOO_LARGE";
+    } else if (
+      err.code === "LIMIT_UNEXPECTED_FILE" ||
+      err.code === "LIMIT_FILE_COUNT" ||
+      err.code === "LIMIT_FIELD_COUNT"
+    ) {
+      code = "INVALID_FILE_FIELD";
+    } else {
+      code = "BAD_REQUEST";
+    }
+
+    status = ERROR_DICTIONARY[code].status;
   } else if (err?.name === "ValidationError") {
     code = "VALIDATION_ERROR";
     status = 400;

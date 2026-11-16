@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import fileMetadataSchema from "./FileMetadata.js";
 import { ROLES } from "../constants/index.js";
 
 
@@ -19,6 +20,10 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  documents: {
+    type: [fileMetadataSchema],
+    default: []
   },
   role: {
     type: String,

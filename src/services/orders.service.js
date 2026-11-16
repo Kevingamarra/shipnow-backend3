@@ -1,9 +1,48 @@
+import { validateFileSignature } from "./fileSignature.service.js";
+import {
+  validateRequiredFile,
+  createFileMetadata,
+  deleteUploadedFile
+} from "./files.service.js";
 import mongoose from "mongoose";
 import ordersRepository from "../repositories/orders.repository.js";
 import { ORDER_STATUS, ORDER_PRIORITY } from "../constants/index.js";
 import { createHttpError } from "../utils/httpError.js";
 
 class OrdersService {
+
+  async addProof(id, file) {
+    try {
+      if (!mongoose.isValidObjectId(id)) {
+        throw createHttpError(400, "ID de pedido inválido", "BAD_REQUEST");
+      }
+
+      validateRequiredFile(file);
+
+      await this.getById(id);
+
+      await validateFileSignature(file);
+
+      const metadata = createFileMetadata(file, "ORDER_PROOF");
+
+      const updatedOrder = await ordersRepository.addProof(id, metadata);
+
+      if (!updatedOrder) {
+        throw createHttpError(404, "Pedido no encontrado", "ORDER_NOT_FOUND");
+      }
+
+      return updatedOrder;
+    } catch (error) {
+      try {
+        await deleteUploadedFile(file);
+      } catch (cleanupError) {
+        console.error("No se pudo limpiar el archivo:", cleanupError);
+      }
+
+      throw error;
+    }
+  }
+
   async getAll() {
     return ordersRepository.getAll();
   }

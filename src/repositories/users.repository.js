@@ -17,6 +17,18 @@ class UsersRepository {
       .select("-password -__v");
   }
 
+
+  async addDocument(id, metadata) {
+    return User.findByIdAndUpdate(
+      id,
+      { $push: { documents: metadata } },
+      {
+        returnDocument: "after",
+        runValidators: true
+      }
+    ).select("-password -__v");
+  }
+
   async create(userData) {
     return await User.create(userData);
   }

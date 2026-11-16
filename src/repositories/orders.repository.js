@@ -13,6 +13,18 @@ class OrdersRepository {
     return Order.create(data);
   }
 
+
+  async addProof(id, metadata) {
+    return Order.findByIdAndUpdate(
+      id,
+      { $push: { proofs: metadata } },
+      {
+        returnDocument: "after",
+        runValidators: true
+      }
+    );
+  }
+
   async updateStatus(id, status) {
     return Order.findByIdAndUpdate(
       id,

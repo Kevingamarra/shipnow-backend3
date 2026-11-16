@@ -1,6 +1,53 @@
+import { validateFileSignature } from "./fileSignature.service.js";
+import mongoose from "mongoose";
+import { createHttpError } from "../utils/httpError.js";
+import {
+  validateDocumentType,
+  validateRequiredFile,
+  createFileMetadata,
+  deleteUploadedFile
+} from "./files.service.js";
 import usersRepository from "../repositories/users.repository.js";
 
 class UsersService {
+
+  async addDocument(id, file, documentType) {
+    try {
+      if (!mongoose.isValidObjectId(id)) {
+        throw createHttpError(400, "ID de usuario inválido", "BAD_REQUEST");
+      }
+
+      validateDocumentType(documentType);
+      validateRequiredFile(file);
+
+      const user = await usersRepository.getById(id);
+
+      if (!user) {
+        throw createHttpError(404, "Usuario no encontrado", "USER_NOT_FOUND");
+      }
+
+      await validateFileSignature(file);
+
+      const metadata = createFileMetadata(file, documentType);
+
+      const updatedUser = await usersRepository.addDocument(id, metadata);
+
+      if (!updatedUser) {
+        throw createHttpError(404, "Usuario no encontrado", "USER_NOT_FOUND");
+      }
+
+      return updatedUser;
+    } catch (error) {
+      try {
+        await deleteUploadedFile(file);
+      } catch (cleanupError) {
+        console.error("No se pudo limpiar el archivo:", cleanupError);
+      }
+
+      throw error;
+    }
+  }
+
   async getAll() {
     const users = await usersRepository.getAll();
 
