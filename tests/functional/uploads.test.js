@@ -4,12 +4,15 @@ import request from "supertest";
 import mongoose from "mongoose";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { mock } from "node:test";
 
 import app from "../../src/app.js";
 import User from "../../src/models/User.js";
 import Order from "../../src/models/Order.js";
 import Product from "../../src/models/Product.js";
 import { generateToken } from "../../src/utils/jwt.js";
+import usersRepository from "../../src/repositories/users.repository.js";
+import ordersRepository from "../../src/repositories/orders.repository.js";
 
 import { assertTestDatabase } from "../helpers/testDatabase.js";
 
@@ -255,6 +258,63 @@ describe("Módulo 7 - carga de archivos", function () {
     const afterFiles = await fs.readdir(uploadDirectory);
 
     expect(afterFiles.sort()).to.deep.equal(beforeFiles.sort());
+  });
+
+
+  it("Limpia el archivo si MongoDB falla al guardar un documento", async function () {
+    const uploadDirectory = path.resolve("uploads/users");
+    const beforeFiles = await fs.readdir(uploadDirectory);
+
+    const mocked = mock.method(
+      usersRepository,
+      "addDocument",
+      async () => {
+        throw new Error("Fallo simulado de MongoDB");
+      }
+    );
+
+    try {
+      const response = await api
+        .post(`/api/users/${user._id}/documents`)
+        .set("Cookie", adminCookie)
+        .field("documentType", "DNI")
+        .attach("file", pdfBuffer, "fallo-documento.pdf");
+
+      expect(response.status).to.equal(500);
+      expect(response.body.code).to.equal("INTERNAL_ERROR");
+
+      const afterFiles = await fs.readdir(uploadDirectory);
+      expect(afterFiles.sort()).to.deep.equal(beforeFiles.sort());
+    } finally {
+      mocked.mock.restore();
+    }
+  });
+
+  it("Limpia el archivo si MongoDB falla al guardar un comprobante", async function () {
+    const uploadDirectory = path.resolve("uploads/orders");
+    const beforeFiles = await fs.readdir(uploadDirectory);
+
+    const mocked = mock.method(
+      ordersRepository,
+      "addProof",
+      async () => {
+        throw new Error("Fallo simulado de MongoDB");
+      }
+    );
+
+    try {
+      const response = await api
+        .post(`/api/orders/${order._id}/proof`)
+        .attach("file", pdfBuffer, "fallo-comprobante.pdf");
+
+      expect(response.status).to.equal(500);
+      expect(response.body.code).to.equal("INTERNAL_ERROR");
+
+      const afterFiles = await fs.readdir(uploadDirectory);
+      expect(afterFiles.sort()).to.deep.equal(beforeFiles.sort());
+    } finally {
+      mocked.mock.restore();
+    }
   });
 
   it("Protege la carga de documentos sin autenticación", async function () {

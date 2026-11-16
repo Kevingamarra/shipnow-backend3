@@ -1,3 +1,4 @@
+import logger from "../utils/logger.js";
 import { validateFileSignature } from "./fileSignature.service.js";
 import mongoose from "mongoose";
 import { createHttpError } from "../utils/httpError.js";
@@ -41,7 +42,10 @@ class UsersService {
       try {
         await deleteUploadedFile(file);
       } catch (cleanupError) {
-        console.error("No se pudo limpiar el archivo:", cleanupError);
+        logger.error("No se pudo limpiar el archivo cargado", {
+          error: cleanupError.message,
+          path: file?.path
+        });
       }
 
       throw error;
